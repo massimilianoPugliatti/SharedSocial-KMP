@@ -30,9 +30,10 @@ Attualmente è completata l'infrastruttura Core e il modulo di Autenticazione. L
 
 ## 🧪 Testing Strategy
 Il progetto adotta lo **State-based testing**:
-* Validazione delle transizioni di stato del ViewModel e degli eventi di navigazione tramite **Turbine**.
-* Iniezione di `TestAppDispatchers` nei test unitari per garantire esecuzioni deterministiche.
-* Mocking dei servizi di rete tramite `Ktor-client-mock`.
+* **State & Navigation:** Validazione delle transizioni di stato del ViewModel e degli eventi di navigazione tramite **Turbine**.
+* **UI Integration:** Utilizzo di **Robolectric** per testare i componenti Compose sulla JVM, garantendo la corretta interazione tra UI e Business Logic senza necessità di emulatore.
+* **Deterministic Threading:** Iniezione di `TestAppDispatchers` (StandardTestDispatcher) sincronizzati con il clock di Compose per garantire esecuzioni deterministiche e prevenire deadlock.
+* **Mocking:** Utilizzo di **Mokkery** per il mocking dei servizi e dei casi d'uso.
 
 ## 🗺 Roadmap
 - [x] Setup Architetturale e BaseTest.
