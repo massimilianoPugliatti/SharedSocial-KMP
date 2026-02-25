@@ -1,0 +1,196 @@
+package com.example.sharedsocial_kmp.ui.features.login
+
+import app.cash.turbine.test
+import com.example.sharedsocial_kmp.base.BaseTest
+import com.example.sharedsocial_kmp.domain.model.User
+import com.example.sharedsocial_kmp.domain.usecase.LoginUseCase
+import com.example.sharedsocial_kmp.navigation.NavigationAction
+import com.example.sharedsocial_kmp.navigation.AppNavigatorImpl
+import com.example.sharedsocial_kmp.ui.features.home.HomeScreen
+import dev.mokkery.MokkeryBlockingCallScope
+import dev.mokkery.MokkerySuspendCallScope
+import dev.mokkery.annotations.DelicateMokkeryApi
+import dev.mokkery.answering.Answer
+import dev.mokkery.answering.returns
+import dev.mokkery.everySuspend
+import dev.mokkery.matcher.any
+import dev.mokkery.mock
+import dev.mokkery.verify.VerifyMode.Companion.exactly
+import dev.mokkery.verifySuspend
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.test.runTest
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
+
+/**
+ * Suite di test per [LoginViewModel].
+ * Verifica la gestione reattiva dello stato e il coordinamento tra il business layer (UseCase)
+ * e la navigazione dell'interfaccia utente.
+ */
+@OptIn(ExperimentalCoroutinesApi::class)
+class LoginViewModelTest : BaseTest() {
+
+    private val navigator = AppNavigatorImpl()
+    private val loginUseCase = mock<LoginUseCase>()
+    private lateinit var viewModel: LoginViewModel
+
+    @BeforeTest
+    fun setup() {
+        viewModel = LoginViewModel(navigator, loginUseCase, appDispatchers)
+    }
+
+    /**
+     * Verifica che un login con successo scateni correttamente la navigazione verso la Home.
+     */
+    @Test
+    fun `login success triggers navigation`() = runTest {
+        val user = User("1", "Max", "email@input")
+        everySuspend { loginUseCase(any(), any()) } returns Result.success(user)
+
+        navigator.navigationEvents.test {
+            viewModel.onEvent(LoginEvent.OnLoginClicked)
+
+            val action = awaitItem()
+            assertTrue(action is NavigationAction.ReplaceAll)
+            assertTrue(action.screen is HomeScreen)
+        }
+    }
+
+    /**
+     * Valida l'intera sequenza di cambiamenti dello stato durante il flusso di login,
+     * dall'input dell'utente al successo finale.
+     */
+    @Test
+    fun `when login succeeds, verify full state sequence and navigation`() = runTest {
+        val emailInput = "test@test.it"
+        val pass = "password123"
+        val user = User("1", "Max", emailInput)
+
+        everySuspend { loginUseCase(any(), any()) } returns Result.success(user)
+
+        viewModel.state.test {
+            assertEquals(LoginState(), awaitItem())
+
+            viewModel.onEvent(LoginEvent.OnEmailChanged(emailInput))
+            assertEquals(LoginState(email = emailInput), awaitItem())
+
+            viewModel.onEvent(LoginEvent.OnPasswordChanged(pass))
+            assertEquals(LoginState(email = emailInput, password = pass), awaitItem())
+
+            viewModel.onEvent(LoginEvent.OnLoginClicked)
+            appDispatchers.testDispatcher.scheduler.runCurrent()
+
+            assertEquals(
+                LoginState(email = emailInput, password = pass, isLoading = true, errorMessage = null, isSuccess = false),
+                awaitItem()
+            )
+
+            appDispatchers.testDispatcher.scheduler.advanceUntilIdle()
+
+            assertEquals(
+                LoginState(email = emailInput, password = pass, isLoading = false, errorMessage = null, isSuccess = true),
+                awaitItem()
+            )
+
+            navigator.navigationEvents.test {
+                val action = awaitItem()
+                assertTrue(action is NavigationAction.ReplaceAll)
+                assertTrue(action.screen is HomeScreen)
+            }
+        }
+    }
+
+    /**
+     * Verifica che in caso di errore, lo stato rifletta correttamente il messaggio ricevuto
+     * e interrompa lo stato di caricamento.
+     */
+    @Test
+    fun `when login fails, verify error state covers all fields`() = runTest {
+        val email = "error@test.it"
+        val pass = "wrongpass"
+        val errorMsg = "Credenziali non valide"
+
+        everySuspend { loginUseCase(any(), any()) } returns Result.failure(Exception(errorMsg))
+
+        viewModel.state.test {
+            awaitItem() // Initial
+
+            viewModel.onEvent(LoginEvent.OnEmailChanged(email))
+            awaitItem()
+            viewModel.onEvent(LoginEvent.OnPasswordChanged(pass))
+            awaitItem()
+
+            viewModel.onEvent(LoginEvent.OnLoginClicked)
+            appDispatchers.testDispatcher.scheduler.runCurrent()
+            assertTrue(awaitItem().isLoading)
+
+            appDispatchers.testDispatcher.scheduler.advanceUntilIdle()
+
+            assertEquals(
+                LoginState(email = email, password = pass, isLoading = false, errorMessage = errorMsg, isSuccess = false),
+                awaitItem()
+            )
+        }
+    }
+
+    /**
+     * Garantisce l'idempotenza del comando di login: se una richiesta è in corso,
+     * i click successivi devono essere ignorati per evitare chiamate multiple al server.
+     */
+    @OptIn(DelicateMokkeryApi::class)
+    @Test
+    fun `when login is loading, subsequent clicks are ignored`() = runTest {
+        everySuspend { loginUseCase(any(), any()) } answers object : Answer<Result<User>> {
+            override fun call(scope: MokkeryBlockingCallScope): Result<User> = error("Not supported")
+
+            override suspend fun call(scope: MokkerySuspendCallScope): Result<User> {
+                delay(1000)
+                return Result.success(User("1", "Max", "test@test.it"))
+            }
+        }
+
+        viewModel.state.test {
+            awaitItem()
+
+            viewModel.onEvent(LoginEvent.OnLoginClicked)
+            assertTrue(awaitItem().isLoading)
+
+            viewModel.onEvent(LoginEvent.OnLoginClicked)
+            viewModel.onEvent(LoginEvent.OnLoginClicked)
+
+            appDispatchers.testDispatcher.scheduler.advanceUntilIdle()
+
+            assertTrue(awaitItem().isSuccess)
+            verifySuspend(exactly(1)) { loginUseCase(any(), any()) }
+        }
+    }
+
+    /**
+     * Verifica la gestione degli errori di timeout, assicurando che l'utente riceva
+     * un feedback chiaro invece di un caricamento infinito.
+     */
+    @Test
+    fun `when repository returns timeout error, state should show specific message`() = runTest {
+        val errorMsg = "Il server ci sta mettendo troppo a rispondere. Riprova più tardi."
+        everySuspend { loginUseCase(any(), any()) } returns Result.failure(Exception(errorMsg))
+
+        viewModel.onEvent(LoginEvent.OnEmailChanged("test@test.it"))
+        viewModel.onEvent(LoginEvent.OnPasswordChanged("password"))
+
+        viewModel.state.test {
+            awaitItem()
+
+            viewModel.onEvent(LoginEvent.OnLoginClicked)
+
+            assertTrue(awaitItem().isLoading)
+
+            val finalState = awaitItem()
+            assertFalse(finalState.isLoading)
+            assertEquals(errorMsg, finalState.errorMessage)
+        }
+    }
+}
