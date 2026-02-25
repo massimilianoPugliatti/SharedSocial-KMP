@@ -9,14 +9,15 @@ import platform.Security.*
 
 /**
  * Implementazione iOS di [SecureStorage] che utilizza Apple Keychain Services.
- * * I dati sono memorizzati nel Secure Enclave con attributi di accessibilità
+ * I dati sono memorizzati nel Secure Enclave con attributi di accessibilità
  * rigorosi per garantire la parità di sicurezza con l'implementazione Android.
  */
+@OptIn(ExperimentalForeignApi::class)
 class IosSecureStorage(
     private val dispatchers: AppDispatchers
 ) : SecureStorage {
 
-    override suspend fun saveString(key: String, value: String) = withContext(dispatchers.io) {
+    override suspend fun saveString(key: String, value: String): Unit = withContext(dispatchers.io) {
         val data = (value as NSString).dataUsingEncoding(NSUTF8StringEncoding) ?: return@withContext
 
         // Definiamo la query per la ricerca dell'item esistente
@@ -34,7 +35,7 @@ class IosSecureStorage(
 
         val status = SecItemAdd(query.toCFDictionary(), null)
         if (status != errSecSuccess) {
-            // Qui potresti loggare l'errore di sistema se necessario
+            // Loggare errore se necessario
         }
     }
 
@@ -47,19 +48,22 @@ class IosSecureStorage(
         )
 
         memScoped {
-            val result = alloc<ObjCObjectVar<Any?>>()
+            // Utilizziamo CFTypeRefVar per gestire correttamente il puntatore alla memoria della Keychain
+            val result = alloc<CFTypeRefVar>()
             val status = SecItemCopyMatching(query.toCFDictionary(), result.ptr)
 
             if (status == errSecSuccess) {
-                val data = result.value as? NSData
-                data?.let { NSString(it, NSUTF8StringEncoding).toString() }
+                val data = CFBridgingRelease(result.value) as? NSData
+                data?.let {
+                    NSString.create(it, NSUTF8StringEncoding)?.toString()
+                }
             } else {
                 null
             }
         }
     }
 
-    override suspend fun clear() = withContext(dispatchers.io) {
+    override suspend fun clear(): Unit = withContext(dispatchers.io) {
         val query = mutableMapOf<Any?, Any?>(
             kSecClass to kSecClassGenericPassword
         )
@@ -68,6 +72,9 @@ class IosSecureStorage(
 
     /**
      * Helper per convertire mappe Kotlin nel formato CFDictionary richiesto dalle API Apple.
+     * In Kotlin/Native, NSDictionary è compatibile con CFDictionaryRef.
      */
-    private fun Map<Any?, Any?>.toCFDictionary() = this as CFDictionaryRef
+    private fun Map<Any?, Any?>.toCFDictionary(): CFDictionaryRef {
+        return (this as NSDictionary) as CFDictionaryRef
+    }
 }

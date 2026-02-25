@@ -1,0 +1,73 @@
+name: Mobile CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+          
+      - name: Grant permission
+        run: chmod +x gradlew
+
+      - name: Run Common Tests
+        run: ./gradlew :composeApp:testDebugUnitTest
+
+  android-build:
+    needs: unit-tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: gradle
+
+      - name: Grant permission
+        run: chmod +x gradlew
+
+      - name: Build Android APK
+        run: ./gradlew :composeApp:assembleRelease
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-release
+          path: composeApp/build/outputs/apk/release/*.apk
+
+  ios-build:
+    needs: unit-tests
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: Grant permission
+        run: chmod +x gradlew
+
+      - name: Build iOS Framework
+        run: ./gradlew :composeApp:iosSimulatorArm64Binaries
+
+      - name: Upload iOS Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-framework
+          path: composeApp/build/bin/iosSimulatorArm64/debugFramework/
