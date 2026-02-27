@@ -26,8 +26,10 @@ Il progetto gestisce le funzionalità specifiche di piattaforma tramite astrazio
 * **Developer Experience (DX):** Mirroring degli eventi nel **Logcat** (Android) e tramite **NSLog** (iOS) durante il debug per validazione in tempo reale.
 
 ## 🌐 Backend & API Ecosystem
-L'app si interfaccia con un backend reale che gestisce la logica di business e la persistenza dei dati.
-* **Backend:** Spring Boot 3.x (ospitato in una repository privata).
+L'app si interfaccia con un ecosistema backend reale ospitato su **Oracle Cloud Infrastructure (OCI)**, progettato con un approccio orientato alla sicurezza e alla scalabilità.
+* **Infrastructure:**
+    * **Public VCN:** Ospita il server **Spring Boot 3.x** dietro un reverse proxy **Nginx**, con certificati **Let's Encrypt** (HTTPS) e gestione dinamica dell'host tramite **No-IP (DDNS)**.
+    * **Private VCN:** Il database **MySQL** è isolato in una rete privata non accessibile dall'esterno, comunicando esclusivamente con il backend per garantire l'integrità del dato.
 * **Security:** Gestione di sessioni stateless tramite **JWT**.
 * **API Documentation:** Gli endpoint sono consultabili e testabili tramite la Swagger UI ufficiale:
   👉 [**SocialMaster API Documentation**](https://socialmaster.ddns.net/swagger-ui/index.html)

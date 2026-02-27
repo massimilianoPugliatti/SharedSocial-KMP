@@ -31,11 +31,6 @@ kotlin {
             baseName = "ComposeApp"
             isStatic = true
             binaryOptions["ios_deployment_target"] = "15.0"
-            binaryOption("ios_minimum_deployment_target", "15.0")
-
-            freeCompilerArgs += listOf(
-                "-Xbinary=ios_minimum_deployment_target=15.0"
-            )
         }
         iosTarget.compilations.getByName("main").compileTaskProvider.configure {
             compilerOptions.freeCompilerArgs.add("-opt-in=kotlinx.cinterop.ExperimentalForeignApi")
@@ -51,9 +46,6 @@ kotlin {
             baseName = "composeApp"
             isStatic = true
             binaryOptions["ios_deployment_target"] = "15.0"
-            freeCompilerArgs += listOf(
-                "-Xbinary=ios_minimum_deployment_target=15.0"
-            )
         }
 
 
