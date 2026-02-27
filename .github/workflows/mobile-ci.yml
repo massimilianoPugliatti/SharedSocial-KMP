@@ -2,7 +2,7 @@ name: Mobile CI
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, "feature/*" ]
   pull_request:
     branches: [ master ]
 
@@ -17,7 +17,7 @@ jobs:
           distribution: temurin
           java-version: 21
           cache: gradle
-          
+
       - name: Grant permission
         run: chmod +x gradlew
 
@@ -29,15 +29,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 17
+          java-version: 21
           cache: gradle
 
       - name: Grant permission
         run: chmod +x gradlew
+
+      - name: Create Google Services JSON
+        run: echo '${{ secrets.GOOGLE_SERVICES_JSON }}' > composeApp/google-services.json
 
       - name: Build Android APK
         run: ./gradlew :composeApp:assembleRelease
@@ -52,7 +56,12 @@ jobs:
     needs: unit-tests
     runs-on: macos-latest
     steps:
+
       - uses: actions/checkout@v4
+
+      - name: Create Google Services Plist
+        run: echo '${{ secrets.GOOGLE_SERVICES_PLIST }}' > iosApp/iosApp/GoogleService-Info.plist
+
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
@@ -60,11 +69,27 @@ jobs:
           java-version: 21
           cache: gradle
 
+      - name: Install CocoaPods
+        run: |
+          sudo gem install cocoapods
+
+      - name: Clean Pods
+        run: |
+          cd iosApp
+          pod deintegrate || true
+          pod cache clean --all || true
+          rm -rf Pods Podfile.lock
+
       - name: Grant permission
         run: chmod +x gradlew
 
+      - name: Clean Gradle
+        run: ./gradlew clean
+
       - name: Build iOS Framework
         run: ./gradlew :composeApp:iosSimulatorArm64Binaries
+        env:
+          IPHONEOS_DEPLOYMENT_TARGET: "15.0"
 
       - name: Upload iOS Artifact
         uses: actions/upload-artifact@v4

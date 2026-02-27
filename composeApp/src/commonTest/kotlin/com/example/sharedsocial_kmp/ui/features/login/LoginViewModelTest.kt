@@ -2,6 +2,7 @@ package com.example.sharedsocial_kmp.ui.features.login
 
 import app.cash.turbine.test
 import com.example.sharedsocial_kmp.base.BaseTest
+import com.example.sharedsocial_kmp.domain.model.AuthError
 import com.example.sharedsocial_kmp.domain.model.User
 import com.example.sharedsocial_kmp.domain.usecase.LoginUseCase
 import com.example.sharedsocial_kmp.navigation.NavigationAction
@@ -85,14 +86,26 @@ class LoginViewModelTest : BaseTest() {
             appDispatchers.testDispatcher.scheduler.runCurrent()
 
             assertEquals(
-                LoginState(email = emailInput, password = pass, isLoading = true, errorMessage = null, isSuccess = false),
+                LoginState(
+                    email = emailInput,
+                    password = pass,
+                    isLoading = true,
+                    errorMessage = null,
+                    isSuccess = false
+                ),
                 awaitItem()
             )
 
             appDispatchers.testDispatcher.scheduler.advanceUntilIdle()
 
             assertEquals(
-                LoginState(email = emailInput, password = pass, isLoading = false, errorMessage = null, isSuccess = true),
+                LoginState(
+                    email = emailInput,
+                    password = pass,
+                    isLoading = false,
+                    errorMessage = null,
+                    isSuccess = true
+                ),
                 awaitItem()
             )
 
@@ -112,28 +125,38 @@ class LoginViewModelTest : BaseTest() {
     fun `when login fails, verify error state covers all fields`() = runTest {
         val email = "error@test.it"
         val pass = "wrongpass"
-        val errorMsg = "Credenziali non valide"
+        val expectedErrorMsg = LoginErrorMapper.mapToMessage(AuthError.InvalidCredentials())
 
-        everySuspend { loginUseCase(any(), any()) } returns Result.failure(Exception(errorMsg))
+        everySuspend {
+            loginUseCase(
+                any(),
+                any()
+            )
+        } returns Result.failure(AuthError.InvalidCredentials())
 
         viewModel.state.test {
-            awaitItem() // Initial
+            awaitItem()
 
             viewModel.onEvent(LoginEvent.OnEmailChanged(email))
-            awaitItem()
+            assertEquals(email, awaitItem().email)
+
             viewModel.onEvent(LoginEvent.OnPasswordChanged(pass))
-            awaitItem()
+            assertEquals(pass, awaitItem().password)
 
             viewModel.onEvent(LoginEvent.OnLoginClicked)
-            appDispatchers.testDispatcher.scheduler.runCurrent()
-            assertTrue(awaitItem().isLoading)
+
+            val loadingState = awaitItem()
+            assertTrue(loadingState.isLoading)
 
             appDispatchers.testDispatcher.scheduler.advanceUntilIdle()
 
-            assertEquals(
-                LoginState(email = email, password = pass, isLoading = false, errorMessage = errorMsg, isSuccess = false),
-                awaitItem()
-            )
+            val finalState = awaitItem()
+
+            assertEquals(expectedErrorMsg, finalState.errorMessage)
+            assertEquals(email, finalState.email)
+            assertEquals(pass, finalState.password)
+            assertFalse(finalState.isLoading)
+            assertFalse(finalState.isSuccess)
         }
     }
 
@@ -145,7 +168,8 @@ class LoginViewModelTest : BaseTest() {
     @Test
     fun `when login is loading, subsequent clicks are ignored`() = runTest {
         everySuspend { loginUseCase(any(), any()) } answers object : Answer<Result<User>> {
-            override fun call(scope: MokkeryBlockingCallScope): Result<User> = error("Not supported")
+            override fun call(scope: MokkeryBlockingCallScope): Result<User> =
+                error("Not supported")
 
             override suspend fun call(scope: MokkerySuspendCallScope): Result<User> {
                 delay(1000)
@@ -175,8 +199,9 @@ class LoginViewModelTest : BaseTest() {
      */
     @Test
     fun `when repository returns timeout error, state should show specific message`() = runTest {
-        val errorMsg = "Il server ci sta mettendo troppo a rispondere. Riprova più tardi."
-        everySuspend { loginUseCase(any(), any()) } returns Result.failure(Exception(errorMsg))
+        val errorMsg = LoginErrorMapper.mapToMessage(AuthError.NetworkError())
+
+        everySuspend { loginUseCase(any(), any()) } returns Result.failure(AuthError.NetworkError())
 
         viewModel.onEvent(LoginEvent.OnEmailChanged("test@test.it"))
         viewModel.onEvent(LoginEvent.OnPasswordChanged("password"))

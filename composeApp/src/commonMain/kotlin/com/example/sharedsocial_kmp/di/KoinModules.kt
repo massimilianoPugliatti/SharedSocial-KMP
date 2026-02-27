@@ -1,9 +1,11 @@
 package com.example.sharedsocial_kmp.di
 
+
 import com.example.sharedsocial_kmp.core.dispatchers.AppDispatchers
 import com.example.sharedsocial_kmp.core.dispatchers.RealAppDispatchers
 import com.example.sharedsocial_kmp.data.local.AuthPersistence
 import com.example.sharedsocial_kmp.data.local.AuthPersistenceImpl
+import com.example.sharedsocial_kmp.data.repository.AnalyticsAuthRepositoryDecorator
 import com.example.sharedsocial_kmp.data.repository.KtorAuthRepository
 import com.example.sharedsocial_kmp.domain.repository.AuthRepository
 import com.example.sharedsocial_kmp.domain.usecase.IsUserAuthenticatedUseCaseImpl
@@ -15,6 +17,7 @@ import com.example.sharedsocial_kmp.navigation.AppNavigatorImpl
 import com.example.sharedsocial_kmp.ui.features.home.HomeViewModel
 import com.example.sharedsocial_kmp.ui.features.login.LoginViewModel
 import com.example.sharedsocial_kmp.ui.features.root.RootViewModel
+import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 /**
@@ -29,7 +32,19 @@ val commonModule = module {
 
     // Data & Persistence
     single<AuthPersistence> { AuthPersistenceImpl(get(), get()) }
-    single<AuthRepository> { KtorAuthRepository(get(), get(), get()) }
+    single<AuthRepository>(named("base_repo")) {
+        KtorAuthRepository(
+            httpClient = get(),
+            authPersistence = get(),
+            dispatchers = get()
+        )
+    }
+    single<AuthRepository> {
+        AnalyticsAuthRepositoryDecorator(
+            delegate = get(named("base_repo")),
+            analytics = get()
+        )
+    }
 
     // UseCases
     factory<LoginUseCase> { LoginUseCaseImpl(get(), get()) }

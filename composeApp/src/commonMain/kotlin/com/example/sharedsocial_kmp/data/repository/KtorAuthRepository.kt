@@ -2,22 +2,25 @@ package com.example.sharedsocial_kmp.data.repository
 
 import com.example.sharedsocial_kmp.core.dispatchers.AppDispatchers
 import com.example.sharedsocial_kmp.data.local.AuthPersistence
-import com.example.sharedsocial_kmp.data.remote.dto.UserDto
+import com.example.sharedsocial_kmp.data.mapper.DomainErrorMapper
 import com.example.sharedsocial_kmp.data.mapper.toDomain
 import com.example.sharedsocial_kmp.data.remote.dto.LoginRequest
+import com.example.sharedsocial_kmp.data.remote.dto.UserDto
+import com.example.sharedsocial_kmp.domain.model.AuthError
 import com.example.sharedsocial_kmp.domain.model.User
 import com.example.sharedsocial_kmp.domain.repository.AuthRepository
-import io.ktor.client.*
-import io.ktor.client.call.*
-import io.ktor.client.network.sockets.SocketTimeoutException
-import io.ktor.client.request.*
-import io.ktor.http.*
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.contentType
 import kotlinx.coroutines.withContext
 
 /**
  * Implementazione di [AuthRepository] basata sul client Ktor.
- * Gestisce il flusso di autenticazione integrando le chiamate API con la
- * persistenza locale dei token e dei dati utente.
+ * Gestisce l'autenticazione remota e la persistenza dei dati di sessione.
  */
 class KtorAuthRepository(
     private val httpClient: HttpClient,
@@ -26,49 +29,52 @@ class KtorAuthRepository(
 ) : AuthRepository {
 
     /**
-     * Esegue il login, estrae il token JWT dagli header e persiste il profilo utente.
+     * Esegue il login e garantisce la persistenza di utente e token.
+     * Restituisce un fallimento se il token di autorizzazione è assente nella risposta.
      */
-    override suspend fun login(email: String, password: String): Result<User> = withContext(
-        dispatchers.io
-    ) {
-        val requestBody = LoginRequest(email, password)
-        try {
+    override suspend fun login(email: String, password: String): Result<User> = withContext(dispatchers.io) {
+        runCatching {
             val response = httpClient.post("Utente/login") {
                 contentType(ContentType.Application.Json)
-                setBody(requestBody)
+                setBody(LoginRequest(email, password))
             }
 
-            if (response.status == HttpStatusCode.OK) {
-                val token = response.headers["Authorization"]?.removePrefix("Bearer ")
-                token?.let { authPersistence.saveToken(it) }
-
-                val userDto = response.body<UserDto>()
-                val user = userDto.toDomain()
-                authPersistence.saveUser(user)
-
-                Result.success(user)
-            } else {
-                Result.failure(Exception("Errore Server: ${response.status.value}"))
+            if (response.status != HttpStatusCode.OK) {
+                throw DomainErrorMapper.mapStatusToError(response.status)
             }
-        } catch (e: SocketTimeoutException) {
-            Result.failure(Exception("Il server ci sta mettendo troppo a rispondere. Riprova più tardi."))
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+
+            val user = response.body<UserDto>().toDomain()
+            val token = response.headers["Authorization"]?.removePrefix("Bearer ")
+
+            if (token.isNullOrBlank()) {
+                throw AuthError.Unknown("Token di autenticazione mancante nella risposta del server")
+            }
+
+            authPersistence.saveToken(token)
+            authPersistence.saveUser(user)
+            user
+        }.fold(
+            onSuccess = { Result.success(it) },
+            onFailure = { Result.failure(DomainErrorMapper.mapExceptionToError(it)) }
+        )
     }
 
     /**
-     * Rimuove la sessione corrente pulendo lo storage sicuro.
+     * Rimuove i dati di sessione dai database locali.
      */
-    override suspend fun logout(): Result<Unit> {
-        authPersistence.clear()
-        return Result.success(Unit)
+    override suspend fun logout(): Result<Unit> = withContext(dispatchers.io) {
+        runCatching {
+            authPersistence.clear()
+        }.fold(
+            onSuccess = { Result.success(Unit) },
+            onFailure = { Result.failure(DomainErrorMapper.mapExceptionToError(it)) }
+        )
     }
 
     /**
-     * Recupera l'utente attualmente loggato dalla cache locale.
+     * Recupera l'ultimo utente autenticato salvato localmente.
      */
-    override suspend fun getCurrentUser(): User? {
-        return authPersistence.getUser()
+    override suspend fun getCurrentUser(): User? = withContext(dispatchers.io) {
+        authPersistence.getUser()
     }
 }

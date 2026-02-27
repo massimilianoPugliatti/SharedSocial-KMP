@@ -28,6 +28,9 @@ kotlinx-serialization = "1.7.3"
 datastore = "1.1.1"
 multiplatformSettings = "1.2.0"
 mokkery = "3.2.0"
+firebase-bom = "34.9.0"
+google-services = "4.4.4"
+firebase-crashlytics-plugin = "3.0.6"
 
 [libraries]
 androidx-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "uiTestManifest" }
@@ -79,6 +82,12 @@ datastore-preferences = { module = "androidx.datastore:datastore-preferences", v
 multiplatform-settings = { module = "com.russhwolf:multiplatform-settings", version.ref = "multiplatformSettings" }
 multiplatform-settings-no-arg = { module = "com.russhwolf:multiplatform-settings-no-arg", version.ref = "multiplatformSettings" }
 
+# Firebase Android (Native)
+firebase-android-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase-bom" }
+firebase-android-analytics = { module = "com.google.firebase:firebase-analytics" }
+firebase-android-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }
+firebase-android-messaging = { module = "com.google.firebase:firebase-messaging" }
+
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
@@ -86,4 +95,7 @@ composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "composeMul
 composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+kotlin-cocoapods = {id = "org.jetbrains.kotlin.native.cocoapods"}
 mokkery = { id = "dev.mokkery", version.ref = "mokkery" }
+google-services = { id = "com.google.gms.google-services", version.ref = "google-services" }
+firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "firebase-crashlytics-plugin" }

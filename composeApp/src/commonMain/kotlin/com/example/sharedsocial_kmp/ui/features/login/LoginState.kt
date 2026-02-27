@@ -11,6 +11,7 @@ data class LoginState(
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
     val emailError: String? = null,
+    val passwordError: String? = null,
     val isSuccess: Boolean = false
 ) {
     /**
@@ -18,6 +19,8 @@ data class LoginState(
      * Basato sulla validità sintattica dei campi e sullo stato attuale del processo.
      */
     val canLogin: Boolean get() = email.isNotBlank() &&
-            password.length >= 6 &&
+            emailError == null &&
+            password.isNotBlank() &&
+            passwordError == null &&
             !isLoading
 }
