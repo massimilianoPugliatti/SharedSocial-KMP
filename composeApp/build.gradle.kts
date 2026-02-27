@@ -29,7 +29,7 @@ kotlin {
     ).forEach { iosTarget ->
         iosTarget.binaries.framework {
             baseName = "ComposeApp"
-            isStatic = false
+            isStatic = true
             binaryOptions["ios_deployment_target"] = "15.0"
             binaryOption("ios_minimum_deployment_target", "15.0")
 
@@ -49,7 +49,7 @@ kotlin {
         ios.deploymentTarget = "15.0"
         framework {
             baseName = "composeApp"
-            isStatic = false
+            isStatic = true
             binaryOptions["ios_deployment_target"] = "15.0"
             freeCompilerArgs += listOf(
                 "-Xbinary=ios_minimum_deployment_target=15.0"
