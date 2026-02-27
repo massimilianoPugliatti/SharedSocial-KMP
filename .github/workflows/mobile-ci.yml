@@ -80,11 +80,6 @@ jobs:
           pod cache clean --all || true
           rm -rf Pods Podfile.lock
 
-      - name: Install Pods
-        run: |
-          cd iosApp
-          pod install
-
       - name: Grant permission
         run: chmod +x gradlew
 
