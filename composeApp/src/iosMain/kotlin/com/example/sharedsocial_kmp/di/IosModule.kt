@@ -2,6 +2,10 @@ package com.example.sharedsocial_kmp.di
 
 import com.example.sharedsocial_kmp.data.local.IosSecureStorage
 import com.example.sharedsocial_kmp.data.local.SecureStorage
+import com.example.sharedsocial_kmp.data.service.IosAnalyticsService
+import com.example.sharedsocial_kmp.data.service.IosNotificationService
+import com.example.sharedsocial_kmp.domain.service.AnalyticsService
+import com.example.sharedsocial_kmp.domain.service.NotificationService
 import org.koin.core.context.startKoin
 import org.koin.dsl.module
 
@@ -21,4 +25,6 @@ fun initKoin() {
  */
 val iosModule = module {
     single<SecureStorage> { IosSecureStorage(get()) }
+    single<AnalyticsService> { IosAnalyticsService(isDebug = true) }
+    single<NotificationService> { IosNotificationService() }
 }

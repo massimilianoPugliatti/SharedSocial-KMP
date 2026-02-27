@@ -1,15 +1,22 @@
 package com.example.sharedsocial_kmp.domain.usecase
 
 import com.example.sharedsocial_kmp.base.BaseTest
+import com.example.sharedsocial_kmp.core.dispatchers.AppDispatchers
+import com.example.sharedsocial_kmp.domain.model.AuthError
+import com.example.sharedsocial_kmp.domain.model.AuthField
 import com.example.sharedsocial_kmp.domain.model.User
 import com.example.sharedsocial_kmp.domain.repository.AuthRepository
+import dev.mokkery.annotations.DelicateMokkeryApi
+import dev.mokkery.answering.Answer
 import dev.mokkery.answering.returns
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import dev.mokkery.verify.VerifyMode.Companion.exactly
 import dev.mokkery.verifySuspend
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
+import kotlin.coroutines.ContinuationInterceptor
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -17,8 +24,8 @@ import kotlin.test.assertTrue
 
 /**
  * Test unitari per [LoginUseCase].
- * Verifica la logica di validazione delle credenziali e la corretta
- * interazione con il repository di autenticazione.
+ * Verifica la logica di validazione delle credenziali, la sanificazione dell'input
+ * e la corretta interazione con il repository di autenticazione, inclusa la gestione dei thread.
  */
 class LoginUseCaseTest : BaseTest() {
 
@@ -31,83 +38,107 @@ class LoginUseCaseTest : BaseTest() {
     }
 
     /**
-     * Verifica che il sistema blocchi preventivamente tentativi con campi vuoti,
-     * senza interpellare il repository.
+     * Verifica che il sistema blocchi preventivamente tentativi con email non valida,
+     * restituendo un errore di validazione senza interpellare il repository.
      */
     @Test
-    fun `should return failure when email or password is blank`() = runTest {
-        val result = loginUseCase("", "123456")
-
+    fun `should return failure and not call repository when email is invalid`() = runTest {
+        val result = loginUseCase("email_invalid", "123456")
         assertTrue(result.isFailure)
-        assertEquals("Email e password obbligatorie", result.exceptionOrNull()?.message)
-
+        val error = result.exceptionOrNull() as? AuthError.ValidationError
+        assertEquals(AuthField.EMAIL, error?.field)
         verifySuspend(exactly(0)) { repository.login(any(), any()) }
     }
 
     /**
-     * Verifica la validazione sintattica dell'email.
+     * Verifica che il sistema blocchi preventivamente tentativi con password non valida,
+     * restituendo un errore di validazione senza interpellare il repository.
      */
     @Test
-    fun `should return failure when email format is invalid`() = runTest {
-        val result = loginUseCase("utente_senza_at.it", "123456")
-
+    fun `should return failure and not call repository when password is invalid`() = runTest {
+        val result = loginUseCase("test@validmail.it", "123")
         assertTrue(result.isFailure)
-        assertEquals("Formato email non valido", result.exceptionOrNull()?.message)
-
+        val error = result.exceptionOrNull() as? AuthError.ValidationError
+        assertEquals(AuthField.PASSWORD, error?.field)
         verifySuspend(exactly(0)) { repository.login(any(), any()) }
     }
 
     /**
-     * Verifica il flusso di successo quando le credenziali superano i controlli
-     * locali e il server conferma l'identità.
+     * Verifica che l'input venga ripulito (trim) prima di essere inviato al repository
+     * e che il risultato di successo venga propagato correttamente.
      */
     @Test
-    fun `should return success when credentials are valid and repository succeeds`() = runTest {
-        val email = "m.pugliatti@email.it"
-        val pass = "password123"
-        val expectedUser = User(id = "101", fullName = "Massimiliano Pugliatti", email = email)
+    fun `should sanitize input and propagate repository success`() = runTest {
+        val expectedUser =
+            User(id = "101", fullName = "Massimiliano Pugliatti", email = "m.pugliatti@email.it")
+        everySuspend { repository.login(any(), any()) } returns Result.success(expectedUser)
 
-        everySuspend { repository.login(email, pass) } returns Result.success(expectedUser)
-
-        val result = loginUseCase(email, pass)
+        val result = loginUseCase("  m.pugliatti@email.it  ", "  123456  ")
 
         assertTrue(result.isSuccess)
-        assertEquals(expectedUser, result.getOrNull())
-        verifySuspend(exactly(1)) { repository.login(email, pass) }
+        verifySuspend(exactly(1)) { repository.login("m.pugliatti@email.it", "123456") }
     }
 
     /**
-     * Verifica che gli errori provenienti dal repository (es. credenziali errate sul server)
-     * vengano correttamente propagati al chiamante.
+     * Verifica che gli errori di dominio restituiti dal repository (es. credenziali errate)
+     * vengano propagati inalterati al chiamante.
      */
     @Test
-    fun `should propagate failure when repository returns error`() = runTest {
+    fun `should propagate failure when repository returns domain error`() = runTest {
         val email = "test@email.it"
         val pass = "wrong_pass"
-        val exception = Exception("Credenziali errate")
+        val domainError = AuthError.InvalidCredentials()
 
-        everySuspend { repository.login(email, pass) } returns Result.failure(exception)
+        everySuspend { repository.login(email, pass) } returns Result.failure(domainError)
 
         val result = loginUseCase(email, pass)
 
         assertTrue(result.isFailure)
-        assertEquals("Credenziali errate", result.exceptionOrNull()?.message)
-        verifySuspend(exactly(1)) { repository.login(email, pass) }
+        assertEquals(domainError, result.exceptionOrNull())
     }
 
     /**
-     * Verifica la resilienza del sistema a piccoli errori di inserimento (spazi vuoti),
-     * assicurando che l'input venga normalizzato (trimmed) prima del login.
+     * Verifica che le eccezioni impreviste lanciate dal repository vengano catturate
+     * e mappate in [AuthError.Unknown].
      */
+    @OptIn(DelicateMokkeryApi::class)
     @Test
-    fun `should succeed even if email has trailing spaces`() = runTest {
-        val email = "test@test.it "
-        val pass = "password"
-        everySuspend { repository.login("test@test.it", pass) } returns Result.success(
-            User("1", "Max", "test@test.it")
-        )
+    fun `should propagate failure when repository returns throw exception`() = runTest {
+        everySuspend { repository.login(any(), any()) } answers (Answer.BlockSuspend {
+            throw RuntimeException("unknown error")
+        })
 
-        val result = loginUseCase(email, pass)
-        assertTrue(result.isSuccess)
+        val result = loginUseCase("test@email.it", "password123")
+
+        assertTrue(result.isFailure)
+        val error = result.exceptionOrNull() as? AuthError.Unknown
+        assertEquals("unknown error", error?.message)
+    }
+
+    /**
+     * Verifica che il UseCase esegua effettivamente il cambio di contesto sul dispatcher IO.
+     * Utilizza dispatcher locali isolati per non interferire con la configurazione globale.
+     */
+    @OptIn(DelicateMokkeryApi::class)
+    @Test
+    fun `verify IO thread switching without affecting other tests`() = runTest {
+        val localIo = StandardTestDispatcher(testScheduler, name = "IO_VERIFIER")
+        val localMain = StandardTestDispatcher(testScheduler, name = "MAIN_VERIFIER")
+
+        val localDispatchers = object : AppDispatchers {
+            override val main = localMain
+            override val io = localIo
+            override val default = localIo
+        }
+
+        val useCaseToVerify = LoginUseCaseImpl(repository, localDispatchers)
+
+        everySuspend { repository.login(any(), any()) } answers (Answer.BlockSuspend {
+            val currentDispatcher = coroutineContext[ContinuationInterceptor]
+            assertEquals(localIo, currentDispatcher, "Il UseCase deve girare su IO!")
+            Result.success(User("1", "Max", "test@test.it"))
+        })
+
+        useCaseToVerify("test@test.it", "password123")
     }
 }

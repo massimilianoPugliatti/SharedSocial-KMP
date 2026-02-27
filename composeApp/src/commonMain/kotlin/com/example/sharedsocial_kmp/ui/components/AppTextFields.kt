@@ -30,6 +30,7 @@ fun AppTextField(
     error: String? = null,
     isPassword: Boolean = false,
     tag: String? = null,
+    enabled: Boolean = true,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     leadingIcon: @Composable (() -> Unit)? = null
 ) {
@@ -41,6 +42,7 @@ fun AppTextField(
             modifier = Modifier
                 .fillMaxWidth()
                 .then(if (tag != null) Modifier.testTag(tag) else Modifier),
+            enabled= enabled,
             shape = RoundedCornerShape(12.dp),
             isError = error != null,
             visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,

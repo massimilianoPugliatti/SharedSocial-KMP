@@ -50,9 +50,19 @@ fun LoginContent(
 
             Spacer(Modifier.height(32.dp))
 
+            state.errorMessage?.let { error ->
+                Text(
+                    text = error,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(bottom = 16.dp).testTag("global_error")
+                )
+            }
+
             LoginFields(
                 state = state,
-                onEvent = onEvent
+                onEvent = onEvent,
+                isEnabled = !state.isLoading // Disabilitiamo input durante il caricamento
             )
 
             Spacer(Modifier.height(24.dp))
@@ -65,6 +75,8 @@ fun LoginContent(
         }
     }
 }
+
+
 
 /**
  * Visualizza l'identità visiva della schermata, inclusi logo e messaggio di benvenuto.
@@ -86,20 +98,28 @@ private fun LoginHeader() {
  * Contiene i campi di input per le credenziali dell'utente.
  */
 @Composable
-private fun LoginFields(state: LoginState, onEvent: (LoginEvent) -> Unit) {
+private fun LoginFields(
+    state: LoginState,
+    onEvent: (LoginEvent) -> Unit,
+    isEnabled: Boolean
+) {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         AppTextField(
             value = state.email,
             onValueChange = { onEvent(LoginEvent.OnEmailChanged(it)) },
             label = "Email",
-            tag = "email_field"
+            tag = "email_field",
+            enabled = isEnabled,
+            error = state.emailError
         )
         AppTextField(
             value = state.password,
             onValueChange = { onEvent(LoginEvent.OnPasswordChanged(it)) },
             label = "Password",
             isPassword = true,
-            tag = "password_field"
+            tag = "password_field",
+            enabled = isEnabled,
+            error = state.passwordError
         )
     }
 }
