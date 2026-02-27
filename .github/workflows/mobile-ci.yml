@@ -30,14 +30,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Create Mock Google Services JSON
-        run: |
-          echo '{
-            "project_info": { "project_number": "123", "project_id": "mock-id" },
-            "client": [ { "client_info": { "mobilesdk_app_id": "1:123:android:abc", "android_client_info": { "package_name": "com.example.sharedsocial_kmp" } } } ],
-            "configuration_version": "1"
-          }' > composeApp/google-services.json
-
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
@@ -47,6 +39,9 @@ jobs:
 
       - name: Grant permission
         run: chmod +x gradlew
+
+      - name: Create Google Services JSON
+        run: echo '${{ secrets.GOOGLE_SERVICES_JSON }}' > composeApp/google-services.json
 
       - name: Build Android APK
         run: ./gradlew :composeApp:assembleRelease
@@ -63,17 +58,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Create Mock Firebase Plist
-        run: |
-          printf '<?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-            <key>API_KEY</key> <string>mock_api_key</string>
-            <key>GOOGLE_APP_ID</key> <string>1:123:ios:abc</string>
-            <key>PROJECT_ID</key> <string>mock-id</string>
-          </dict>
-          </plist>' > iosApp/iosApp/GoogleService-Info.plist
+      - name: Create Google Services Plist
+        run: echo '${{ secrets.GOOGLE_SERVICES_PLIST }}' > iosApp/iosApp/GoogleService-Info.plist
 
       - name: Setup Java
         uses: actions/setup-java@v4
