@@ -30,6 +30,9 @@ kotlin {
             baseName = "ComposeApp"
             isStatic = true
         }
+        iosTarget.compilations.getByName("main").compileTaskProvider.configure {
+            compilerOptions.freeCompilerArgs.add("-opt-in=kotlinx.cinterop.ExperimentalForeignApi")
+        }
     }
 
     cocoapods {
