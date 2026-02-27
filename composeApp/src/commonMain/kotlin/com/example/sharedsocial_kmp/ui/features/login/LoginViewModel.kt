@@ -3,7 +3,10 @@ package com.example.sharedsocial_kmp.ui.features.login
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import com.example.sharedsocial_kmp.core.dispatchers.AppDispatchers
+import com.example.sharedsocial_kmp.domain.model.AuthField
 import com.example.sharedsocial_kmp.domain.usecase.LoginUseCase
+import com.example.sharedsocial_kmp.domain.validation.AuthValidator
+import com.example.sharedsocial_kmp.domain.validation.ValidationResult
 import com.example.sharedsocial_kmp.navigation.AppNavigator
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,53 +27,61 @@ class LoginViewModel(
     private val _state = MutableStateFlow(LoginState())
     val state = _state.asStateFlow()
 
-    /**
-     * Punto di ingresso unico per tutte le azioni provenienti dalla UI.
-     * Smista l'evento e aggiorna lo stato o innesca logiche di business.
-     */
     fun onEvent(event: LoginEvent) {
         when (event) {
-            is LoginEvent.OnEmailChanged -> {
-                _state.update { it.copy(email = event.value, emailError = null) }
-            }
-            is LoginEvent.OnPasswordChanged -> {
-                _state.update { it.copy(password = event.value) }
-            }
-            LoginEvent.OnLoginClicked -> {
-                if (state.value.isLoading) return
-                performLogin()
-            }
+            is LoginEvent.OnEmailChanged -> updateEmail(event.value)
+            is LoginEvent.OnPasswordChanged -> updatePassword(event.value)
+            LoginEvent.OnLoginClicked -> performLogin()
         }
     }
 
-    /**
-     * Coordina il processo di autenticazione chiamando il UseCase dedicato.
-     * Gestisce il passaggio allo stato di caricamento e la navigazione in caso di successo.
-     */
     private fun performLogin() {
-        _state.update { it.copy(isLoading = true, errorMessage = null, isSuccess = false) }
+        if (state.value.isLoading) return
+        _state.update { it.copy(isLoading = true, errorMessage = null) }
 
         screenModelScope.launch(dispatchers.main) {
-            try {
-                val result = loginUseCase(state.value.email, state.value.password)
-
-                result.onSuccess {
+            loginUseCase(state.value.email, state.value.password)
+                .onSuccess {
                     _state.update { it.copy(isLoading = false, isSuccess = true) }
                     navigator.navigateToHome()
-                }.onFailure { error ->
+                }
+                .onFailure { error ->
                     _state.update {
                         it.copy(
                             isLoading = false,
-                            errorMessage = error.message ?: "Errore imprevisto",
-                            isSuccess = false
+                            errorMessage = LoginErrorMapper.mapToMessage(error)
                         )
                     }
                 }
-            } catch (e: Exception) {
-                _state.update {
-                    it.copy(isLoading = false, errorMessage = "Errore di rete", isSuccess = false)
-                }
-            }
         }
     }
+
+    private fun updateEmail(value: String) {
+        val validation = AuthValidator.validateEmail(value)
+        _state.update {
+            it.copy(
+                email = value,
+                emailError = if (validation is ValidationResult.Invalid) {
+                    LoginErrorMapper.mapValidationReason(AuthField.EMAIL, validation.reason)
+                } else null,
+                errorMessage = null
+            )
+
+        }
+    }
+
+    private fun updatePassword(value: String) {
+        val validation = AuthValidator.validatePassword(value)
+        _state.update {
+            it.copy(
+                password = value,
+                passwordError = if (validation is ValidationResult.Invalid) {
+                    LoginErrorMapper.mapValidationReason(AuthField.PASSWORD, validation.reason)
+                } else null,
+                errorMessage = null
+            )
+        }
+    }
+
+
 }

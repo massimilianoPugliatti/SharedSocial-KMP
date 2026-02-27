@@ -3,24 +3,34 @@ package com.example.sharedsocial_kmp.data.repository
 import com.example.sharedsocial_kmp.base.BaseTest
 import com.example.sharedsocial_kmp.data.local.AuthPersistence
 import com.example.sharedsocial_kmp.data.remote.dto.UserDto
+import com.example.sharedsocial_kmp.domain.model.AuthError
 import com.example.sharedsocial_kmp.domain.model.User
 import dev.mokkery.answering.returns
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
+import dev.mokkery.verify.VerifyMode.Companion.exactly
 import dev.mokkery.verifySuspend
-import io.ktor.client.*
-import io.ktor.client.engine.mock.*
-import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.mock.MockEngine
+import io.ktor.client.engine.mock.MockRequestHandleScope
+import io.ktor.client.engine.mock.respond
+import io.ktor.client.engine.mock.respondError
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.HttpResponseData
-import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.headersOf
+import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 /**
@@ -93,11 +103,56 @@ class KtorAuthRepositoryTest : BaseTest() {
         val result = repository.login(email, "password123")
 
         assertTrue(result.isSuccess, "Il login dovrebbe avere successo")
-        val user = result.getOrNull()
-        assertEquals("Mario Rossi", user?.fullName)
+        val user = result.getOrThrow()
+        assertEquals("Mario Rossi", user.fullName)
 
-        verifySuspend { authPersistence.saveToken(mockToken) }
-        verifySuspend { authPersistence.saveUser(user!!) }
+        verifySuspend(exactly(1)) { authPersistence.saveToken(mockToken) }
+        verifySuspend(exactly(1)) { authPersistence.saveUser(user) }
+    }
+
+    /**
+     * Verifica che il login fallisca nel caso in cui il server restituisca HTTP 200 OK
+     * ma l'header Authorization sia presente ma vuoto.
+     * Garantisce che l'eccezione venga mappata in [AuthError.Unknown] e che nessuna
+     * operazione di persistenza venga effettuata.
+     */
+    @Test
+    fun `login response with empty token should return failure`() = runTest {
+        val email = "test@example.com"
+        val userDto = UserDto(
+            id = 1,
+            username = "testuser",
+            nome = "Mario",
+            cognome = "Rossi",
+            email = email
+        )
+
+        val httpClient = createMockHttpClient {
+            respond(
+                content = Json.encodeToString(userDto),
+                status = HttpStatusCode.OK,
+                headers = headersOf(
+                    HttpHeaders.Authorization to listOf(""),
+                    HttpHeaders.ContentType to listOf(ContentType.Application.Json.toString())
+                )
+            )
+        }
+
+        val repository = KtorAuthRepository(httpClient, authPersistence, appDispatchers)
+
+        everySuspend { authPersistence.saveToken(any()) } returns Unit
+        everySuspend { authPersistence.saveUser(any()) } returns Unit
+
+        val result = repository.login(email, "password123")
+
+        assertTrue(result.isFailure)
+        val error = result.exceptionOrNull()
+
+        assertTrue(error is AuthError.Unknown)
+        assertEquals("Token di autenticazione mancante nella risposta del server", error.message)
+
+        verifySuspend(exactly(0)) { authPersistence.saveToken(any()) }
+        verifySuspend(exactly(0)) { authPersistence.saveUser(any()) }
     }
 
     /**
@@ -105,52 +160,57 @@ class KtorAuthRepositoryTest : BaseTest() {
      * risponde con un codice di errore 401.
      */
     @Test
-    fun `login failure should return failure Result`() = runTest(appDispatchers.testDispatcher) {
+    fun `login failure with 401 should return invalid api key`() = runTest(appDispatchers.testDispatcher) {
         val httpClient = createMockHttpClient {
             respond(content = "Unauthorized", status = HttpStatusCode.Unauthorized)
         }
 
         val repository = KtorAuthRepository(httpClient, authPersistence, appDispatchers)
-        val result = repository.login("wrong@test.com", "wrong")
+        val result = repository.login("wrong@test.com", "wrongpsw")
 
         assertTrue(result.isFailure)
-        val message = result.exceptionOrNull()?.message
-        assertTrue(message?.contains("401") == true)
+        val exception = result.exceptionOrNull()
+        assertNotNull(exception,"l'eccezione non dovrebbe essere null")
+        assertTrue (exception is AuthError.InvalidApiKey,exception?.message)
+        verifySuspend(exactly(0)) { authPersistence.saveToken(any()) }
+        verifySuspend(exactly(0)) { authPersistence.saveUser(any()) }
     }
 
     /**
      * Verifica il recupero dell'utente corrente dalla memoria locale.
      */
     @Test
-    fun `getCurrentUser should return user from persistence`() = runTest(appDispatchers.testDispatcher) {
-        val httpClient = HttpClient(MockEngine) {
-            engine { addHandler { respondError(HttpStatusCode.BadRequest) } }
+    fun `getCurrentUser should return user from persistence`() =
+        runTest(appDispatchers.testDispatcher) {
+            val repository = KtorAuthRepository(HttpClient(), authPersistence, appDispatchers)
+            val expectedUser = User("1", "Mario Rossi", "test@test.it")
+
+            everySuspend { authPersistence.getUser() } returns expectedUser
+
+            val result = repository.getCurrentUser()
+
+            assertEquals(expectedUser, result)
+            verifySuspend(exactly(1)) { authPersistence.getUser() }
         }
-        val repository = KtorAuthRepository(httpClient, authPersistence, appDispatchers)
-        val expectedUser = User("1", "Mario Rossi", "test@test.it")
-
-        everySuspend { authPersistence.getUser() } returns expectedUser
-
-        val result = repository.getCurrentUser()
-
-        assertEquals(expectedUser, result)
-    }
 
     /**
-     * Verifica la gestione dei timeout di rete durante il tentativo di login.
+     * Verifica la gestione delle eccezioni di rete durante il tentativo di login.
      */
     @Test
-    fun `login should return failure when network timeouts`() = runTest(appDispatchers.testDispatcher) {
-        val httpClient = createMockHttpClient {
-            throw io.ktor.client.network.sockets.SocketTimeoutException("Timeout!", null)
+    fun `login should return failure when network timeouts`() =
+        runTest(appDispatchers.testDispatcher) {
+            val httpClient = createMockHttpClient {
+                throw io.ktor.client.network.sockets.SocketTimeoutException("Timeout!", null)
+            }
+
+            val repository = KtorAuthRepository(httpClient, authPersistence, appDispatchers)
+            val result = repository.login("test@test.com", "password")
+
+            assertTrue(result.isFailure)
+            assertTrue(result.exceptionOrNull() is AuthError.NetworkError)
+            verifySuspend(exactly(0)) { authPersistence.saveToken(any()) }
+            verifySuspend(exactly(0)) { authPersistence.saveUser(any()) }
         }
-
-        val repository = KtorAuthRepository(httpClient, authPersistence, appDispatchers)
-        val result = repository.login("test@test.com", "password")
-
-        assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull()?.message?.contains("troppo a rispondere") == true)
-    }
 
     /**
      * Verifica che l'operazione di logout rimuova correttamente i dati dalla persistenza.
@@ -163,6 +223,6 @@ class KtorAuthRepositoryTest : BaseTest() {
         val result = repository.logout()
 
         assertTrue(result.isSuccess)
-        verifySuspend { authPersistence.clear() }
+        verifySuspend(exactly(1)) { authPersistence.clear() }
     }
 }

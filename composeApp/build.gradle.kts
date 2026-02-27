@@ -1,3 +1,4 @@
+import com.google.gms.googleservices.GoogleServicesPlugin
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -7,6 +8,9 @@ plugins {
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.mokkery)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.kotlin.cocoapods)
+    alias(libs.plugins.google.services)
+    alias(libs.plugins.firebase.crashlytics)
 
 
 }
@@ -20,12 +24,40 @@ kotlin {
 
     listOf(
         iosArm64(),
-        iosSimulatorArm64()
+        iosSimulatorArm64(),
+        iosX64()
     ).forEach { iosTarget ->
         iosTarget.binaries.framework {
             baseName = "ComposeApp"
             isStatic = true
+            binaryOptions["ios_deployment_target"] = "15.0"
         }
+        iosTarget.compilations.getByName("main").compileTaskProvider.configure {
+            compilerOptions.freeCompilerArgs.add("-opt-in=kotlinx.cinterop.ExperimentalForeignApi")
+        }
+    }
+
+    cocoapods {
+        version = "1.0.0"
+        summary = "Shared module for Social App"
+        homepage = "https://github.com/massimilianoPugliatti/SharedSocial-KMP"
+        ios.deploymentTarget = "15.0"
+        framework {
+            baseName = "composeApp"
+            isStatic = true
+            binaryOptions["ios_deployment_target"] = "15.0"
+        }
+
+
+        pod("FirebaseAnalytics")
+        pod("FirebaseCrashlytics")
+        pod("FirebaseMessaging")
+    }
+
+    googleServices {
+        // Impedisce al plugin di interrompere la build se non trova gli ID corretti
+        missingGoogleServicesStrategy = GoogleServicesPlugin.MissingGoogleServicesStrategy.IGNORE
+
     }
 
     sourceSets {
@@ -39,6 +71,11 @@ kotlin {
 
             implementation(libs.tink.android)
             implementation(libs.datastore.preferences)
+
+            implementation(libs.firebase.android.analytics)
+            implementation(libs.firebase.android.crashlytics)
+            implementation(libs.firebase.android.messaging)
+
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
@@ -65,6 +102,8 @@ kotlin {
 
             implementation(libs.multiplatform.settings)
             implementation(libs.multiplatform.settings.no.arg)
+
+            api("io.github.mirzemehdi:kmpnotifier:1.6.1")
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
@@ -80,14 +119,11 @@ kotlin {
             implementation(libs.ktor.serialization.kotlinx.json)
             implementation(libs.slf4j.nop)
         }
-        val androidUnitTest by getting {
-            dependencies {
-                implementation(kotlin("test"))
-                implementation(libs.robolectric)
-                implementation(libs.ui.test)
-            }
+        androidUnitTest.dependencies {
+            implementation(kotlin("test"))
+            implementation(libs.robolectric)
+            implementation(libs.ui.test)
         }
-
     }
 }
 
@@ -126,6 +162,7 @@ android {
 dependencies {
     debugImplementation(libs.compose.uiTooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    add("androidMainImplementation", platform(libs.firebase.android.bom))
 }
 tasks.withType<Test> {
     testLogging {
