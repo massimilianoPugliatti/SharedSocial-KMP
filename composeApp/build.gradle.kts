@@ -24,11 +24,13 @@ kotlin {
 
     listOf(
         iosArm64(),
-        iosSimulatorArm64()
+        iosSimulatorArm64(),
+        iosX64()
     ).forEach { iosTarget ->
         iosTarget.binaries.framework {
             baseName = "ComposeApp"
-            isStatic = true
+            isStatic = false
+            binaryOptions["ios_deployment_target"] = "15.0"
             binaryOption("ios_minimum_deployment_target", "15.0")
 
             freeCompilerArgs += listOf(
@@ -45,7 +47,14 @@ kotlin {
         summary = "Shared module for Social App"
         homepage = "https://github.com/massimilianoPugliatti/SharedSocial-KMP"
         ios.deploymentTarget = "15.0"
-        framework { baseName = "composeApp" }
+        framework {
+            baseName = "composeApp"
+            isStatic = false
+            binaryOptions["ios_deployment_target"] = "15.0"
+            freeCompilerArgs += listOf(
+                "-Xbinary=ios_minimum_deployment_target=15.0"
+            )
+        }
 
 
         pod("FirebaseAnalytics")

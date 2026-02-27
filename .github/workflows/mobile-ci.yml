@@ -83,6 +83,9 @@ jobs:
       - name: Grant permission
         run: chmod +x gradlew
 
+      - name: Clean Gradle
+        run: ./gradlew clean
+
       - name: Build iOS Framework
         run: ./gradlew :composeApp:iosSimulatorArm64Binaries
         env:
