@@ -29,7 +29,6 @@ kotlin {
         iosTarget.binaries.framework {
             baseName = "ComposeApp"
             isStatic = true
-            freeCompilerArgs += listOf("-Xbinary=minFreeVersion=15.0")
         }
         iosTarget.compilations.getByName("main").compileTaskProvider.configure {
             compilerOptions.freeCompilerArgs.add("-opt-in=kotlinx.cinterop.ExperimentalForeignApi")

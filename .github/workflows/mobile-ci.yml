@@ -56,6 +56,7 @@ jobs:
     needs: unit-tests
     runs-on: macos-latest
     steps:
+
       - uses: actions/checkout@v4
 
       - name: Create Google Services Plist
@@ -67,6 +68,22 @@ jobs:
           distribution: temurin
           java-version: 21
           cache: gradle
+
+      - name: Install CocoaPods
+        run: |
+          sudo gem install cocoapods
+
+      - name: Clean Pods
+        run: |
+          cd iosApp
+          pod deintegrate || true
+          pod cache clean --all || true
+          rm -rf Pods Podfile.lock
+
+      - name: Install Pods
+        run: |
+          cd iosApp
+          pod install
 
       - name: Grant permission
         run: chmod +x gradlew
