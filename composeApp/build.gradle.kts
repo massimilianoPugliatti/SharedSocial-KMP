@@ -29,6 +29,8 @@ kotlin {
         iosTarget.binaries.framework {
             baseName = "ComposeApp"
             isStatic = true
+            binaryOption("ios_minimum_deployment_target", "15.0")
+
             freeCompilerArgs += listOf(
                 "-Xbinary=ios_minimum_deployment_target=15.0"
             )
