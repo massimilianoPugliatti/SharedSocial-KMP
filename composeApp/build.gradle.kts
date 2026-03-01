@@ -8,7 +8,6 @@ plugins {
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.mokkery)
     alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.kotlin.cocoapods)
     alias(libs.plugins.google.services)
     alias(libs.plugins.firebase.crashlytics)
 
@@ -31,31 +30,16 @@ kotlin {
             baseName = "ComposeApp"
             isStatic = true
             binaryOptions["ios_deployment_target"] = "15.0"
+            export("io.github.mirzemehdi:kmpnotifier:1.6.1")
         }
         iosTarget.compilations.getByName("main").compileTaskProvider.configure {
             compilerOptions.freeCompilerArgs.add("-opt-in=kotlinx.cinterop.ExperimentalForeignApi")
         }
     }
 
-    cocoapods {
-        version = "1.0.0"
-        summary = "Shared module for Social App"
-        homepage = "https://github.com/massimilianoPugliatti/SharedSocial-KMP"
-        ios.deploymentTarget = "15.0"
-        framework {
-            baseName = "composeApp"
-            isStatic = true
-            binaryOptions["ios_deployment_target"] = "15.0"
-        }
 
-
-        pod("FirebaseAnalytics")
-        pod("FirebaseCrashlytics")
-        pod("FirebaseMessaging")
-    }
 
     googleServices {
-        // Impedisce al plugin di interrompere la build se non trova gli ID corretti
         missingGoogleServicesStrategy = GoogleServicesPlugin.MissingGoogleServicesStrategy.IGNORE
 
     }
