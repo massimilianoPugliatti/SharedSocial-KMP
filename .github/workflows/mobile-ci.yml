@@ -49,7 +49,7 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: android-release
+          name: android-debug-apk
           path: composeApp/build/outputs/apk/debug/*.apk
 
   ios-build:
@@ -77,14 +77,17 @@ jobs:
       - name: Build iOS App via Xcode CLI
         working-directory: iosApp
         run: |
+          # Usiamo 'iPhone 17' che è disponibile nel tuo log
+          # Definiamo -derivedDataPath per sapere esattamente dove finisce l'app
           xcodebuild -project iosApp.xcodeproj \
             -scheme iosApp \
             -sdk iphonesimulator \
-            -destination 'platform=iOS Simulator,name=iPhone 15' \
+            -destination 'platform=iOS Simulator,name=iPhone 17' \
+            -derivedDataPath build_output \
             build | xcpretty
 
       - name: Upload iOS Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ios-app-build
-          path: ~/Library/Developer/Xcode/DerivedData/**/Build/Products/Debug-iphonesimulator/*.app
+          name: ios-debug-app
+          path: iosApp/build_output/Build/Products/Debug-iphonesimulator/*.app
