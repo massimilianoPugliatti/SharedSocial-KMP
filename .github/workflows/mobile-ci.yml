@@ -2,7 +2,7 @@ name: Mobile CI
 
 on:
   push:
-    branches: [ master, "feature/*" ]
+    branches: [ master, "feature/*", "tech/*" ]
   pull_request:
     branches: [ master ]
 
