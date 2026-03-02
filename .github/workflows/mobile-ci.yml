@@ -2,7 +2,7 @@ name: Mobile CI
 
 on:
   push:
-    branches: [ master, "feature/*" ]
+    branches: [ master, "feature/*", "tech/*" ]
   pull_request:
     branches: [ master ]
 
@@ -49,14 +49,13 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: android-release
+          name: android-debug-apk
           path: composeApp/build/outputs/apk/debug/*.apk
 
   ios-build:
     needs: unit-tests
     runs-on: macos-latest
     steps:
-
       - uses: actions/checkout@v4
 
       - name: Create Google Services Plist
@@ -69,30 +68,24 @@ jobs:
           java-version: 21
           cache: gradle
 
-      - name: Install CocoaPods
-        run: |
-          sudo gem install cocoapods
-
-      - name: Clean Pods
-        run: |
-          cd iosApp
-          pod deintegrate || true
-          pod cache clean --all || true
-          rm -rf Pods Podfile.lock
-
       - name: Grant permission
         run: chmod +x gradlew
 
-      - name: Clean Gradle
-        run: ./gradlew clean
+      - name: Build Shared Framework (Kotlin)
+        run: ./gradlew :composeApp:assembleDebug
 
-      - name: Build iOS Framework
-        run: ./gradlew :composeApp:iosSimulatorArm64Binaries
-        env:
-          IPHONEOS_DEPLOYMENT_TARGET: "15.0"
+      - name: Build iOS App via Xcode CLI
+        working-directory: iosApp
+        run: |
+          xcodebuild -project iosApp.xcodeproj \
+            -scheme iosApp \
+            -sdk iphonesimulator \
+            -destination 'platform=iOS Simulator,name=iPhone 17' \
+            -derivedDataPath build_output \
+            build | xcpretty
 
       - name: Upload iOS Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ios-framework
-          path: composeApp/build/bin/iosSimulatorArm64/debugFramework/
+          name: ios-debug-app
+          path: iosApp/build_output/Build/Products/Debug-iphonesimulator/*.app
