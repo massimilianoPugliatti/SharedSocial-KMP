@@ -8,9 +8,7 @@ import androidx.datastore.preferences.preferencesDataStoreFile
 import com.example.sharedsocial_kmp.data.local.AndroidSecureStorage
 import com.example.sharedsocial_kmp.data.local.SecureStorage
 import com.example.sharedsocial_kmp.data.service.AndroidAnalyticsService
-import com.example.sharedsocial_kmp.data.service.AndroidNotificationService
 import com.example.sharedsocial_kmp.domain.service.AnalyticsService
-import com.example.sharedsocial_kmp.domain.service.NotificationService
 import org.koin.dsl.module
 
 /**
@@ -50,5 +48,4 @@ val androidModule = module {
             isDebug = true // Impostato a true per mostrare i log ai recruiter
         )
     }
-    single<NotificationService> { AndroidNotificationService() }
 }
