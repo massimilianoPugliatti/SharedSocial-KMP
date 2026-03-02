@@ -77,8 +77,6 @@ jobs:
       - name: Build iOS App via Xcode CLI
         working-directory: iosApp
         run: |
-          # Usiamo 'iPhone 17' che è disponibile nel tuo log
-          # Definiamo -derivedDataPath per sapere esattamente dove finisce l'app
           xcodebuild -project iosApp.xcodeproj \
             -scheme iosApp \
             -sdk iphonesimulator \

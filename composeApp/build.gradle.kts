@@ -29,7 +29,7 @@ kotlin {
         iosTarget.binaries.framework {
             baseName = "ComposeApp"
             isStatic = true
-            binaryOptions["ios_deployment_target"] = "15.0"
+            freeCompilerArgs += listOf("-Xbinary=bundleId=com.example.sharedsocial-kmp.SharedSocialKMP")
             export("io.github.mirzemehdi:kmpnotifier:1.6.1")
         }
         iosTarget.compilations.getByName("main").compileTaskProvider.configure {
