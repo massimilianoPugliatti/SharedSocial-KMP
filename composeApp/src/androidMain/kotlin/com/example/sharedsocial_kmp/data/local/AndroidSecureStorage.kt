@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.example.sharedsocial_kmp.core.dispatchers.AppDispatchers
+import com.example.sharedsocial_kmp.features.auth.data.local.SecureStorage
 import com.google.crypto.tink.Aead
 import com.google.crypto.tink.KeyTemplates
 import com.google.crypto.tink.RegistryConfiguration
@@ -48,7 +49,7 @@ class AndroidSecureStorage(
         withContext(dispatchers.io) {
             val prefKey = stringPreferencesKey(key)
 
-            // Cifratura del dato prima della persistenza su DataStore
+
             val encryptedValue = aead.encrypt(value.encodeToByteArray(), null)
             val base64Value = Base64.encodeToString(encryptedValue, Base64.DEFAULT)
 
@@ -64,8 +65,6 @@ class AndroidSecureStorage(
             val encryptedValue = Base64.decode(base64Value, Base64.DEFAULT)
             val decrypted = aead.decrypt(encryptedValue, null)
             String(decrypted)
-        }.onFailure {
-            // Log/Handle eventuale corruzione del keyset o invalidazione della Master Key
         }.getOrNull()
     }
 

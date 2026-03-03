@@ -28,9 +28,9 @@ class IosAnalyticsService: NSObject, AnalyticsService {
         Analytics.logEvent(name, parameters: params)
     }
     
-    func setUserId(userId: String) {
-        Analytics.setUserID(userId)
-        Crashlytics.crashlytics().setUserID(userId)
+    func setUserId(userId: Int64) {
+        Analytics.setUserID(String(userId))
+        Crashlytics.crashlytics().setUserID(String(userId))
     }
     
     func recordNonFatalException(throwable: KotlinThrowable) {

@@ -13,10 +13,13 @@ import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.runComposeUiTest
 import app.cash.turbine.test
 import com.example.sharedsocial_kmp.base.BaseTest
-import com.example.sharedsocial_kmp.domain.model.User
-import com.example.sharedsocial_kmp.domain.usecase.LoginUseCase
-import com.example.sharedsocial_kmp.navigation.AppNavigatorImpl
-import com.example.sharedsocial_kmp.navigation.NavigationAction
+import com.example.sharedsocial_kmp.features.auth.domain.model.User
+import com.example.sharedsocial_kmp.features.auth.domain.usecase.LoginUseCase
+import com.example.sharedsocial_kmp.core.navigation.AppNavigatorImpl
+import com.example.sharedsocial_kmp.core.navigation.NavigationAction
+import com.example.sharedsocial_kmp.features.auth.presentation.LoginContent
+import com.example.sharedsocial_kmp.features.auth.presentation.LoginState
+import com.example.sharedsocial_kmp.features.auth.presentation.LoginViewModel
 import dev.mokkery.answering.returns
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
@@ -84,7 +87,7 @@ class LoginUITest : BaseTest() {
 
         everySuspend {
             mockUseCase.invoke(any(), any())
-        } returns Result.success(User(id = "123", fullName = "Test User", email = "test@test.it"))
+        } returns Result.success(User(id = 123, fullName = "Test User", email = "test@test.it"))
 
         val viewModel = LoginViewModel(
             navigator = realNavigator,
