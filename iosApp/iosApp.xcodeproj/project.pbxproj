@@ -18,7 +18,6 @@
 		32DF1AF22F54971600573404 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 32DF1AE62F54971600573404 /* Assets.xcassets */; };
 		32DF1AF52F54987700573404 /* KoinDependencies.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32DF1AF42F54987700573404 /* KoinDependencies.swift */; };
 		32DF1AF82F54AFBC00573404 /* IosAnalyticsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32DF1AF72F54AFBC00573404 /* IosAnalyticsService.swift */; };
-		32DF1AFA2F54B54900573404 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 32DF1AF92F54B54900573404 /* GoogleService-Info.plist */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,7 +29,6 @@
 		32DF1AEB2F54971600573404 /* IosSecureStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IosSecureStorage.swift; sourceTree = "<group>"; };
 		32DF1AF42F54987700573404 /* KoinDependencies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KoinDependencies.swift; sourceTree = "<group>"; };
 		32DF1AF72F54AFBC00573404 /* IosAnalyticsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IosAnalyticsService.swift; sourceTree = "<group>"; };
-		32DF1AF92F54B54900573404 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		32DF1AFB2F54C52E00573404 /* iosApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = iosApp.entitlements; sourceTree = "<group>"; };
 		C2D7165759FD45FBBD401D18 /* SharedSocialKMP.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SharedSocialKMP.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -77,7 +75,6 @@
 				32DF1AE72F54971600573404 /* Info.plist */,
 				32DF1AE92F54971600573404 /* ContentView.swift */,
 				32DF1AEA2F54971600573404 /* iOSApp.swift */,
-				32DF1AF92F54B54900573404 /* GoogleService-Info.plist */,
 			);
 			path = iosApp;
 			sourceTree = "<group>";
@@ -187,7 +184,6 @@
 			files = (
 				32DF1AF02F54971600573404 /* Preview Assets.xcassets in Resources */,
 				32DF1AF22F54971600573404 /* Assets.xcassets in Resources */,
-				32DF1AFA2F54B54900573404 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
