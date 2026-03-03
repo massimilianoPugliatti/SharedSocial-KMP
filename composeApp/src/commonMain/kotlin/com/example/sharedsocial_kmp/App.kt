@@ -4,9 +4,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import cafe.adriel.voyager.navigator.CurrentScreen
 import cafe.adriel.voyager.navigator.Navigator
-import com.example.sharedsocial_kmp.navigation.AppNavigator
-import com.example.sharedsocial_kmp.navigation.NavigationAction
-import com.example.sharedsocial_kmp.ui.features.root.RootScreen
+import com.example.sharedsocial_kmp.core.navigation.AppNavigator
+import com.example.sharedsocial_kmp.core.navigation.NavigationAction
+import com.example.sharedsocial_kmp.root.RootScreen
 import org.koin.compose.koinInject
 
 /**
