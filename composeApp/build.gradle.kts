@@ -88,6 +88,7 @@ kotlin {
             implementation(libs.multiplatform.settings.no.arg)
 
             api("io.github.mirzemehdi:kmpnotifier:1.6.1")
+            implementation(libs.material.icons.extended)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)

@@ -1,7 +1,9 @@
 package com.example.sharedsocial_kmp.di
 
-import com.example.sharedsocial_kmp.data.local.SecureStorage
-import com.example.sharedsocial_kmp.domain.service.AnalyticsService
+import com.example.sharedsocial_kmp.core.di.commonModule
+import com.example.sharedsocial_kmp.core.network.networkModule
+import com.example.sharedsocial_kmp.features.auth.data.local.SecureStorage
+import com.example.sharedsocial_kmp.core.service.AnalyticsService
 import org.koin.core.context.startKoin
 import org.koin.dsl.module
 

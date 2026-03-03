@@ -6,9 +6,9 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
 import com.example.sharedsocial_kmp.data.local.AndroidSecureStorage
-import com.example.sharedsocial_kmp.data.local.SecureStorage
+import com.example.sharedsocial_kmp.features.auth.data.local.SecureStorage
 import com.example.sharedsocial_kmp.data.service.AndroidAnalyticsService
-import com.example.sharedsocial_kmp.domain.service.AnalyticsService
+import com.example.sharedsocial_kmp.core.service.AnalyticsService
 import org.koin.dsl.module
 
 /**
@@ -45,7 +45,7 @@ val androidModule = module {
     single<AnalyticsService> {
         AndroidAnalyticsService(
             context = get(),
-            isDebug = true // Impostato a true per mostrare i log ai recruiter
+            isDebug = true
         )
     }
 }
