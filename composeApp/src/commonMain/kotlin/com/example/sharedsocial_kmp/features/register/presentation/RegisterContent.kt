@@ -149,7 +149,7 @@ private fun RegisterFields(
                 keyboardType = KeyboardType.Text,
                 imeAction = ImeAction.Next
             ),
-            contentType = ContentType.NewUsername
+
         )
         AppTextField(
             value = state.email,
@@ -162,7 +162,7 @@ private fun RegisterFields(
                 keyboardType = KeyboardType.Email,
                 imeAction = ImeAction.Next
             ),
-            contentType = ContentType.EmailAddress
+            contentType =ContentType.NewUsername + ContentType.EmailAddress
         )
         AppTextField(
             value = state.password,

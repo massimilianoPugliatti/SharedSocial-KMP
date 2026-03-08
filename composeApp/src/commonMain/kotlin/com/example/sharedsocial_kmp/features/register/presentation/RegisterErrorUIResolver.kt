@@ -14,6 +14,7 @@ object RegisterErrorUIResolver {
         is RegisterError.InvalidRequest -> "Parametri di registrazione non validi. Ricontrolla i campi."
         is RegisterError.NetworkError -> "Problema di connessione"
         is RegisterError.ServerError -> "Server non disponibile"
+        is RegisterError.UsernameOrEmailAlreadyExist -> "Username o email già esistente"
         is RegisterError.ValidationError -> mapValidationReason(error.field, error.reason)
         else -> "Errore imprevisto"
     }
