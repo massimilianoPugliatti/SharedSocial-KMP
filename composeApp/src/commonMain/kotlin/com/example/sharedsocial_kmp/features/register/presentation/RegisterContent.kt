@@ -1,8 +1,7 @@
-package com.example.sharedsocial_kmp.features.auth.presentation
+package com.example.sharedsocial_kmp.features.register.presentation
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,14 +26,14 @@ import sharedsocialkmp.composeapp.generated.resources.Res
 import sharedsocialkmp.composeapp.generated.resources.icona
 
 /**
- * Componente visuale principale per la schermata di login.
+ * Componente visuale principale per la schermata di registrazione.
  * Organizza il layout in sezioni logiche e delega la gestione degli input
  * e delle azioni attraverso il pattern Unidirectional Data Flow (UDF).
  */
 @Composable
-fun LoginContent(
-    state: LoginState,
-    onEvent: (LoginEvent) -> Unit
+fun RegisterContent(
+    state: RegisterState,
+    onEvent: (RegisterEvent) -> Unit
 ) {
     Scaffold(
         modifier = Modifier.fillMaxSize()
@@ -47,7 +46,7 @@ fun LoginContent(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            LoginHeader()
+            RegisterHeader()
 
             Spacer(Modifier.height(32.dp))
 
@@ -60,7 +59,7 @@ fun LoginContent(
                 )
             }
 
-            LoginFields(
+            RegisterFields(
                 state = state,
                 onEvent = onEvent,
                 isEnabled = !state.isLoading
@@ -68,29 +67,21 @@ fun LoginContent(
 
             Spacer(Modifier.height(24.dp))
 
-            LoginActions(
-                canLogin = state.canLogin,
+            RegisterActions(
+                canRegister = state.canRegister,
                 isLoading = state.isLoading,
                 onEvent = onEvent
             )
-            Spacer(Modifier.height(16.dp))
-
-            LoginFooter(
-                isEnabled = !state.isLoading,
-                onEvent = onEvent
-            )
-
         }
     }
 }
-
 
 
 /**
  * Visualizza l'identità visiva della schermata, inclusi logo e messaggio di benvenuto.
  */
 @Composable
-private fun LoginHeader() {
+private fun RegisterHeader() {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Icon(
             painter = painterResource(Res.drawable.icona),
@@ -98,23 +89,44 @@ private fun LoginHeader() {
             modifier = Modifier.size(64.dp),
             tint = Color.Unspecified
         )
-        Text("Bentornato!", style = MaterialTheme.typography.headlineMedium)
+        Text("Benvenuto!", style = MaterialTheme.typography.headlineMedium)
     }
 }
 
 /**
- * Contiene i campi di input per le credenziali dell'utente.
+ * Contiene i campi di input per i dati di registrazione.
  */
 @Composable
-private fun LoginFields(
-    state: LoginState,
-    onEvent: (LoginEvent) -> Unit,
+private fun RegisterFields(
+    state: RegisterState,
+    onEvent: (RegisterEvent) -> Unit,
     isEnabled: Boolean
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         AppTextField(
+            value = state.name,
+            onValueChange = { onEvent(RegisterEvent.OnNameChanged(it)) },
+            label = "Nome",
+            tag = "nam_field",
+            enabled = isEnabled,
+        )
+        AppTextField(
+            value = state.surname,
+            onValueChange = { onEvent(RegisterEvent.OnSurnameChanged(it)) },
+            label = "Cognome",
+            tag = "surname_field",
+            enabled = isEnabled,
+        )
+        AppTextField(
+            value = state.username,
+            onValueChange = { onEvent(RegisterEvent.OnUsernameChanged(it)) },
+            label = "Username",
+            tag = "username_field",
+            enabled = isEnabled,
+        )
+        AppTextField(
             value = state.email,
-            onValueChange = { onEvent(LoginEvent.OnEmailChanged(it)) },
+            onValueChange = { onEvent(RegisterEvent.OnEmailChanged(it)) },
             label = "Email",
             tag = "email_field",
             enabled = isEnabled,
@@ -122,62 +134,46 @@ private fun LoginFields(
         )
         AppTextField(
             value = state.password,
-            onValueChange = { onEvent(LoginEvent.OnPasswordChanged(it)) },
+            onValueChange = { onEvent(RegisterEvent.OnPasswordChanged(it)) },
             label = "Password",
             isPassword = true,
             tag = "password_field",
             enabled = isEnabled,
             error = state.passwordError
         )
+        AppTextField(
+            value = state.confirmPassword,
+            onValueChange = { onEvent(RegisterEvent.OnConfirmPasswordChanged(it)) },
+            label = "Conferma Password",
+            isPassword = true,
+            tag = "confirm_password_field",
+            enabled = isEnabled,
+            error = state.confirmPasswordError
+        )
     }
 }
 
 /**
- * Gestisce i pulsanti di azione e lo stato di caricamento durante l'autenticazione.
+ * Gestisce i pulsanti di azione e lo stato di caricamento durante la registrazione.
  */
 @Composable
-private fun LoginActions(canLogin: Boolean, isLoading: Boolean, onEvent: (LoginEvent) -> Unit) {
+private fun RegisterActions(
+    canRegister: Boolean,
+    isLoading: Boolean,
+    onEvent: (RegisterEvent) -> Unit
+) {
     Button(
-        onClick = { onEvent(LoginEvent.OnLoginClicked) },
-        modifier = Modifier.fillMaxWidth().testTag("login_button"),
-        enabled = canLogin
+        onClick = { onEvent(RegisterEvent.OnRegisterClicked) },
+        modifier = Modifier.fillMaxWidth().testTag("register_button"),
+        enabled = canRegister
     ) {
         if (isLoading) {
             CircularProgressIndicator(
-                modifier = Modifier.size(24.dp).testTag("login_loader"),
+                modifier = Modifier.size(24.dp).testTag("register_loader"),
                 color = Color.White
             )
         } else {
-            Text("Accedi")
-        }
-    }
-}
-
-/**
- * Gestisce il link alla registrazione per i nuovi utenti.
- */
-@Composable
-private fun LoginFooter(isEnabled: Boolean, onEvent: (LoginEvent) -> Unit) {
-    androidx.compose.material3.TextButton(
-        onClick = { onEvent(LoginEvent.OnRegisterClick) },
-        enabled = isEnabled,
-        modifier = Modifier.testTag("go_to_register_button")
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            Text(
-                text = "Non hai un account?",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Text(
-                text = "Registrati",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
-            )
+            Text("Registrati")
         }
     }
 }

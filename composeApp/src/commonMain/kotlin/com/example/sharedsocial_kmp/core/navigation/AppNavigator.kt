@@ -24,6 +24,11 @@ interface AppNavigator {
     fun navigateToLogin()
 
     /**
+     * Reindirizza l'utente alla schermata di registrazione.
+     */
+    fun navigateToRegister()
+
+    /**
      * Torna alla schermata precedente nello stack di navigazione.
      */
     fun goBack()

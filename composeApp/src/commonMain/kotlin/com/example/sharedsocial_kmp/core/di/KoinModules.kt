@@ -27,6 +27,12 @@ import com.example.sharedsocial_kmp.features.feed.domain.usecase.GetPostsUseCase
 import com.example.sharedsocial_kmp.features.feed.domain.usecase.GetPostsUseCaseImpl
 import com.example.sharedsocial_kmp.features.feed.domain.usecase.NewPostUseCase
 import com.example.sharedsocial_kmp.features.feed.domain.usecase.NewPostuseCaseImpl
+import com.example.sharedsocial_kmp.features.register.data.repository.KtorRegisterRepository
+import com.example.sharedsocial_kmp.features.register.data.repository.RegisterRepositoryDecorator
+import com.example.sharedsocial_kmp.features.register.domain.repository.RegisterRepository
+import com.example.sharedsocial_kmp.features.register.domain.usecase.RegisterUseCase
+import com.example.sharedsocial_kmp.features.register.domain.usecase.RegisterUseCaseImpl
+import com.example.sharedsocial_kmp.features.register.presentation.RegisterViewModel
 import com.example.sharedsocial_kmp.root.RootViewModel
 import com.mmk.kmpnotifier.notification.NotifierManager
 import org.koin.core.qualifier.named
@@ -41,6 +47,9 @@ val commonModule = module {
     // Core & Navigation
     single<AppNavigator> { AppNavigatorImpl() }
     single<AppDispatchers> { RealAppDispatchers() }
+    single<PermissionService> {
+        PermissionServiceImpl()
+    }
 
     // Data & Persistence
     single<AuthPersistence> { AuthPersistenceImpl(get(), get()) }
@@ -53,10 +62,22 @@ val commonModule = module {
     }
     single<AuthRepository> {
         AuthRepositoryDecorator(
-            delegate = KtorAuthRepository(get(), get(), get()),
+            delegate = get(named("base_auth_repo")),
             analytics = get(),
             pushNotifier = NotifierManager.getPushNotifier(),
             permissionService = get()
+        )
+    }
+    single<RegisterRepository>(named("base_register_repo")) {
+        KtorRegisterRepository(
+            httpClient = get(),
+            dispatchers = get()
+        )
+    }
+    single<RegisterRepository> {
+        RegisterRepositoryDecorator(
+            delegate = get(named("base_register_repo")),
+            analytics = get(),
         )
     }
     single<FeedRepository> ( named("base_feed_repo")) {
@@ -67,7 +88,7 @@ val commonModule = module {
     }
     single<FeedRepository> {
         FeedRepositoryDecorator(
-            delegate = KtorFeedRepository(get(), get()),
+            delegate = get(named("base_feed_repo")),
             analytics = get()
         )
     }
@@ -75,6 +96,7 @@ val commonModule = module {
     // UseCases
     factory<LoginUseCase> { LoginUseCaseImpl(get(), get()) }
     factory<IsUserAuthenticatedUseCase> { IsUserAuthenticatedUseCaseImpl(get()) }
+    factory<RegisterUseCase> { RegisterUseCaseImpl(get(), get()) }
     factory<GetPostsUseCase> { GetPostsUseCaseImpl(get(),get()) }
     factory<NewPostUseCase>{ NewPostuseCaseImpl(get(),get()) }
     factory<ToggleLikeUseCase>{ ToggleLikeUseCaseImpl(get(),get()) }
@@ -84,9 +106,6 @@ val commonModule = module {
     // ViewModels
     factory { RootViewModel(get(), get()) }
     factory { LoginViewModel(get(), get(), get()) }
+    factory { RegisterViewModel(get(), get(), get()) }
     factory { FeedViewModel(get(), get(), get(), get(), get()) }
-
-    single<PermissionService> {
-        PermissionServiceImpl()
-    }
 }
