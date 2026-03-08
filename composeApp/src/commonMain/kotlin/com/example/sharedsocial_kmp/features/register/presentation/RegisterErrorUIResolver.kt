@@ -8,10 +8,10 @@ import com.example.sharedsocial_kmp.features.register.domain.model.ValidationRea
  * Mapper dedicato alla trasformazione degli errori di dominio in
  * messaggi leggibili dall'utente (Presentation Logic).
  */
-object RegisterErrorMapper {
+object RegisterErrorUIResolver {
 
     fun mapToMessage(error: Throwable): String = when (error) {
-        is RegisterError.InvalidCredentials -> "Credenziali non valide"
+        is RegisterError.InvalidRequest -> "Parametri di registrazione non validi. Ricontrolla i campi."
         is RegisterError.NetworkError -> "Problema di connessione"
         is RegisterError.ServerError -> "Server non disponibile"
         is RegisterError.ValidationError -> mapValidationReason(error.field, error.reason)

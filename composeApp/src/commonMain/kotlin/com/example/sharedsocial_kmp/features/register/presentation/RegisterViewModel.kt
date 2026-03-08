@@ -59,7 +59,7 @@ class RegisterViewModel(
                     _state.update {
                         it.copy(
                             isLoading = false,
-                            errorMessage = RegisterErrorMapper.mapToMessage(error)
+                            errorMessage = RegisterErrorUIResolver.mapToMessage(error)
                         )
                     }
                 }
@@ -95,7 +95,7 @@ class RegisterViewModel(
             it.copy(
                 email = value,
                 emailError = if (validation is ValidationResult.Invalid) {
-                    RegisterErrorMapper.mapValidationReason(RegisterField.EMAIL, validation.reason)
+                    RegisterErrorUIResolver.mapValidationReason(RegisterField.EMAIL, validation.reason)
                 } else null,
                 errorMessage = null
             )
@@ -107,7 +107,7 @@ class RegisterViewModel(
             it.copy(
                 password = value,
                 passwordError = if (validation is ValidationResult.Invalid) {
-                    RegisterErrorMapper.mapValidationReason(
+                    RegisterErrorUIResolver.mapValidationReason(
                         RegisterField.PASSWORD,
                         validation.reason
                     )
@@ -122,7 +122,7 @@ class RegisterViewModel(
             it.copy(
                 confirmPassword = confirmPassword,
                 confirmPasswordError = if (validation is ValidationResult.Invalid) {
-                    RegisterErrorMapper.mapValidationReason(
+                    RegisterErrorUIResolver.mapValidationReason(
                         RegisterField.CONFIRM_PASSWORD,
                         validation.reason
                     )

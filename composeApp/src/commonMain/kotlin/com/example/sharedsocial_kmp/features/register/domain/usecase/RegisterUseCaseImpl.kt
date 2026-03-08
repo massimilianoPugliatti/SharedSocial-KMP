@@ -48,6 +48,6 @@ class RegisterUseCaseImpl(
                 )
             )
         }
-        repository.register(cleanUsername, cleanName, cleanSurname, cleanEmail, cleanPass)
+        repository.register(cleanName, cleanSurname, cleanUsername, cleanEmail, cleanPass)
     }
 }

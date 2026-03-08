@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -18,8 +19,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.autofill.ContentType
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentType
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.sharedsocial_kmp.core.ui.AppTextField
 import org.jetbrains.compose.resources.painterResource
@@ -85,7 +91,6 @@ fun LoginContent(
 }
 
 
-
 /**
  * Visualizza l'identità visiva della schermata, inclusi logo e messaggio di benvenuto.
  */
@@ -118,7 +123,17 @@ private fun LoginFields(
             label = "Email",
             tag = "email_field",
             enabled = isEnabled,
-            error = state.emailError
+            error = state.emailError,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Email,
+                imeAction = ImeAction.Next
+            ),
+            modifier = Modifier.semantics{
+                contentType = ContentType.EmailAddress
+            }
+
+            ,
+            //contentType = ContentType.EmailAddress
         )
         AppTextField(
             value = state.password,
@@ -127,7 +142,12 @@ private fun LoginFields(
             isPassword = true,
             tag = "password_field",
             enabled = isEnabled,
-            error = state.passwordError
+            error = state.passwordError,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Password,
+                imeAction = ImeAction.Done
+            ),
+            contentType = ContentType.Password
         )
     }
 }
