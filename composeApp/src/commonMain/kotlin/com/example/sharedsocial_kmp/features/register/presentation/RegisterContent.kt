@@ -110,10 +110,9 @@ private fun RegisterFields(
     isEnabled: Boolean
 ) {
 
-    Column(verticalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.semantics() {
-        // Fondamentale: aiuta il sistema a identificare il form
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.semantics {
         isTraversalGroup = true
-    },) {
+    }) {
         AppTextField(
             value = state.name,
             onValueChange = { onEvent(RegisterEvent.OnNameChanged(it)) },
