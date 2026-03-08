@@ -20,4 +20,9 @@ sealed interface LoginEvent {
      * Scatena il tentativo di autenticazione con le credenziali attuali.
      */
     data object OnLoginClicked : LoginEvent
+
+    /**
+     * Notifica il click sul link di registrazione.
+     */
+    data object OnRegisterClick : LoginEvent
 }

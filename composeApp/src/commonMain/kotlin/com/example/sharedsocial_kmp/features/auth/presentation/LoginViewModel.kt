@@ -32,6 +32,7 @@ class LoginViewModel(
             is LoginEvent.OnEmailChanged -> updateEmail(event.value)
             is LoginEvent.OnPasswordChanged -> updatePassword(event.value)
             LoginEvent.OnLoginClicked -> performLogin()
+            LoginEvent.OnRegisterClick -> navigator.navigateToRegister()
         }
     }
 
