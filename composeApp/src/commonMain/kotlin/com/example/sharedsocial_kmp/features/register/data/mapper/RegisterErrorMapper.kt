@@ -18,10 +18,11 @@ object RegisterErrorMapper {
      */
     fun mapStatusToError(status: HttpStatusCode): RegisterError {
         return when (status) {
-            HttpStatusCode.BadRequest -> RegisterError.InvalidCredentials()
+            HttpStatusCode.BadRequest -> RegisterError.InvalidRequest()
             HttpStatusCode.Unauthorized -> RegisterError.InvalidApiKey()
             HttpStatusCode.Forbidden -> RegisterError.Forbidden()
             HttpStatusCode.InternalServerError, HttpStatusCode.ServiceUnavailable -> RegisterError.ServerError()
+            HttpStatusCode.Conflict -> RegisterError.UsernameOrEmailAlreadyExist()
             else -> RegisterError.Unknown("Errore imprevisto: ${status.value}")
         }
     }

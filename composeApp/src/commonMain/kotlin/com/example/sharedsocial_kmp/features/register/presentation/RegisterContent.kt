@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -17,8 +18,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.autofill.ContentType
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.isTraversalGroup
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.sharedsocial_kmp.core.ui.AppTextField
 import org.jetbrains.compose.resources.painterResource
@@ -102,13 +109,22 @@ private fun RegisterFields(
     onEvent: (RegisterEvent) -> Unit,
     isEnabled: Boolean
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.semantics {
+        isTraversalGroup = true
+    }) {
         AppTextField(
             value = state.name,
             onValueChange = { onEvent(RegisterEvent.OnNameChanged(it)) },
             label = "Nome",
-            tag = "nam_field",
+            tag = "name_field",
             enabled = isEnabled,
+            keyboardOptions = KeyboardOptions(
+                capitalization = KeyboardCapitalization.Words,
+                keyboardType = KeyboardType.Text,
+                imeAction = ImeAction.Next
+            ),
+           contentType = ContentType.PersonFirstName,
         )
         AppTextField(
             value = state.surname,
@@ -116,6 +132,12 @@ private fun RegisterFields(
             label = "Cognome",
             tag = "surname_field",
             enabled = isEnabled,
+            keyboardOptions = KeyboardOptions(
+                capitalization = KeyboardCapitalization.Words,
+                keyboardType = KeyboardType.Text,
+                imeAction = ImeAction.Next
+            ),
+            contentType = ContentType.PersonLastName
         )
         AppTextField(
             value = state.username,
@@ -123,6 +145,11 @@ private fun RegisterFields(
             label = "Username",
             tag = "username_field",
             enabled = isEnabled,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Text,
+                imeAction = ImeAction.Next
+            ),
+
         )
         AppTextField(
             value = state.email,
@@ -130,7 +157,12 @@ private fun RegisterFields(
             label = "Email",
             tag = "email_field",
             enabled = isEnabled,
-            error = state.emailError
+            error = state.emailError,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Email,
+                imeAction = ImeAction.Next
+            ),
+            contentType =ContentType.NewUsername + ContentType.EmailAddress
         )
         AppTextField(
             value = state.password,
@@ -139,7 +171,12 @@ private fun RegisterFields(
             isPassword = true,
             tag = "password_field",
             enabled = isEnabled,
-            error = state.passwordError
+            error = state.passwordError,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Password,
+                imeAction = ImeAction.Next
+            ),
+            contentType = ContentType.NewPassword
         )
         AppTextField(
             value = state.confirmPassword,
@@ -148,7 +185,12 @@ private fun RegisterFields(
             isPassword = true,
             tag = "confirm_password_field",
             enabled = isEnabled,
-            error = state.confirmPasswordError
+            error = state.confirmPasswordError,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Password,
+                imeAction = ImeAction.Done
+            ),
+            contentType = ContentType.NewPassword
         )
     }
 }

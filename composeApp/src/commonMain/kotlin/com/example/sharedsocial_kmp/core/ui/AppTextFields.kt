@@ -11,7 +11,10 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.autofill.ContentType
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentType
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
@@ -32,6 +35,7 @@ fun AppTextField(
     tag: String? = null,
     enabled: Boolean = true,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    contentType: ContentType? = null,
     leadingIcon: @Composable (() -> Unit)? = null
 ) {
     Column(modifier = modifier) {
@@ -41,6 +45,10 @@ fun AppTextField(
             label = { Text(label) },
             modifier = Modifier
                 .fillMaxWidth()
+                .semantics{
+                    if (contentType != null)
+                        this.contentType = contentType
+                }
                 .then(if (tag != null) Modifier.testTag(tag) else Modifier),
             enabled= enabled,
             shape = RoundedCornerShape(12.dp),

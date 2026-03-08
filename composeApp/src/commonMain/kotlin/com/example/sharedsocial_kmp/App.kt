@@ -1,11 +1,12 @@
 package com.example.sharedsocial_kmp
 
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import cafe.adriel.voyager.navigator.CurrentScreen
 import cafe.adriel.voyager.navigator.Navigator
 import com.example.sharedsocial_kmp.core.navigation.AppNavigator
 import com.example.sharedsocial_kmp.core.navigation.NavigationAction
+import com.example.sharedsocial_kmp.core.ui.theme.AppTheme
 import com.example.sharedsocial_kmp.root.RootScreen
 import org.koin.compose.koinInject
 
@@ -16,7 +17,7 @@ import org.koin.compose.koinInject
  */
 @Composable
 fun App() {
-    MaterialTheme {
+    AppTheme {
         val appNavigator = koinInject<AppNavigator>()
 
         Navigator(RootScreen()) { voyagerNavigator ->
