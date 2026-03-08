@@ -2,6 +2,7 @@ package com.example.sharedsocial_kmp.core.navigation
 
 import com.example.sharedsocial_kmp.features.feed.presentation.FeedScreen
 import com.example.sharedsocial_kmp.features.auth.presentation.LoginScreen
+import com.example.sharedsocial_kmp.features.register.presentation.RegisterScreen
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 
@@ -21,6 +22,10 @@ class AppNavigatorImpl : AppNavigator {
 
     override fun navigateToLogin() {
         _events.trySend(NavigationAction.ReplaceAll(LoginScreen()))
+    }
+
+    override fun navigateToRegister() {
+        _events.trySend(NavigationAction.Push(RegisterScreen()))
     }
 
     override fun goBack() {
