@@ -4,6 +4,7 @@ import android.app.Application
 import com.example.sharedsocial_kmp.di.androidModule
 import com.example.sharedsocial_kmp.core.di.commonModule
 import com.example.sharedsocial_kmp.core.network.networkModule
+import com.example.sharedsocial_kmp.di.cameraAndroidModule
 import com.mmk.kmpnotifier.notification.NotifierManager
 import com.mmk.kmpnotifier.notification.configuration.NotificationPlatformConfiguration
 import org.koin.android.ext.koin.androidContext
@@ -22,7 +23,7 @@ class MyApplication : Application() {
         startKoin {
             androidContext(this@MyApplication)
             androidLogger()
-            modules(commonModule , androidModule , networkModule)
+            modules(commonModule , androidModule , networkModule, cameraAndroidModule)
         }
     }
 }
