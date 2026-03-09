@@ -59,6 +59,20 @@ kotlin {
             implementation(libs.firebase.android.analytics)
             implementation(libs.firebase.android.crashlytics)
             implementation(libs.firebase.android.messaging)
+            // CameraX core
+            implementation(libs.androidx.camera.core)
+
+            // CameraX Camera2 implementation
+            implementation(libs.androidx.camera.camera2)
+
+            // Lifecycle binding
+            implementation(libs.androidx.camera.lifecycle)
+
+            // PreviewView
+            implementation(libs.androidx.camera.view)
+
+            // Video capture API
+            implementation(libs.androidx.camera.video)
 
         }
         commonMain.dependencies {

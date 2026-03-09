@@ -9,6 +9,8 @@ import com.example.sharedsocial_kmp.data.local.AndroidSecureStorage
 import com.example.sharedsocial_kmp.features.auth.data.local.SecureStorage
 import com.example.sharedsocial_kmp.data.service.AndroidAnalyticsService
 import com.example.sharedsocial_kmp.core.service.AnalyticsService
+import com.example.sharedsocial_kmp.core.service.MediaPickerService
+import com.example.sharedsocial_kmp.data.service.AndroidMediaPickerService
 import org.koin.dsl.module
 
 /**
@@ -48,4 +50,6 @@ val androidModule = module {
             isDebug = true
         )
     }
+
+    single<MediaPickerService> { get<AndroidMediaPickerService>() }
 }

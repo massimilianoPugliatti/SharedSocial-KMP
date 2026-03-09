@@ -20,6 +20,7 @@ import com.example.sharedsocial_kmp.features.auth.domain.usecase.LoginUseCase
 import com.example.sharedsocial_kmp.features.auth.domain.usecase.LoginUseCaseImpl
 import com.example.sharedsocial_kmp.features.feed.presentation.FeedViewModel
 import com.example.sharedsocial_kmp.features.auth.presentation.LoginViewModel
+import com.example.sharedsocial_kmp.features.camera.presentation.CameraViewModel
 import com.example.sharedsocial_kmp.features.feed.data.repository.FeedRepositoryDecorator
 import com.example.sharedsocial_kmp.features.feed.data.repository.KtorFeedRepository
 import com.example.sharedsocial_kmp.features.feed.domain.repository.FeedRepository
@@ -108,4 +109,5 @@ val commonModule = module {
     factory { LoginViewModel(get(), get(), get()) }
     factory { RegisterViewModel(get(), get(), get()) }
     factory { FeedViewModel(get(), get(), get(), get(), get()) }
+    factory { CameraViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
 }
