@@ -23,16 +23,14 @@ import org.koin.dsl.module
 
 val cameraAndroidModule = module {
     single {
-        AndroidCameraFacade(
-            context = get(),
-            lifecycleOwner = get()
-        )
+        AndroidCameraFacade(context = get())
     } binds arrayOf(
         CameraService::class,
         CameraPreviewRenderer::class,
         CameraPermissionService::class
     )
-    single<AndroidMediaPickerService> { AndroidMediaPickerService(get()) }
+
+    single { AndroidMediaPickerService(get()) }
 
     factoryOf(::CapturePhotoUseCaseImpl) bind CapturePhotoUseCase::class
     factoryOf(::StartVideoRecordingUseCaseImpl) bind StartVideoRecordingUseCase::class
@@ -40,5 +38,5 @@ val cameraAndroidModule = module {
     factoryOf(::SwitchCameraUseCaseImpl) bind SwitchCameraUseCase::class
     factoryOf(::PickMediaUseCaseImpl) bind PickMediaUseCase::class
 
-    factory { CameraViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    factory { CameraViewModel(get(), get(), get(), get(), get(), get(), get(), get(),get()) }
 }
