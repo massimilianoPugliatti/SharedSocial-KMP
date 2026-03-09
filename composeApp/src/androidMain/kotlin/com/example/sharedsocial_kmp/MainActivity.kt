@@ -1,6 +1,5 @@
 package com.example.sharedsocial_kmp
 
-import android.app.Activity
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -8,10 +7,10 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.LaunchedEffect
-import androidx.lifecycle.LifecycleOwner
+import com.example.sharedsocial_kmp.core.service.CameraService
+import com.example.sharedsocial_kmp.data.service.AndroidCameraFacade
 import com.example.sharedsocial_kmp.data.service.AndroidMediaPickerService
 import com.mmk.kmpnotifier.permission.permissionUtil
-import org.koin.compose.koinInject
 import org.koin.mp.KoinPlatform.getKoin
 
 class MainActivity : ComponentActivity() {
@@ -22,12 +21,14 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         val koin = getKoin()
-        koin.declare(this as LifecycleOwner)
-        koin.declare(this as Activity)
+
+        val cameraFacade = koin.get<CameraService>() as AndroidCameraFacade
+        cameraFacade.bindLifecycle(this)
+
+        val mediaPickerService = koin.get<AndroidMediaPickerService>()
+        mediaPickerService.updateContext(this)
 
         setContent {
-            val mediaPickerService = koinInject<AndroidMediaPickerService>()
-
             val launcher = rememberLauncherForActivityResult(
                 contract = ActivityResultContracts.StartActivityForResult()
             ) { result ->

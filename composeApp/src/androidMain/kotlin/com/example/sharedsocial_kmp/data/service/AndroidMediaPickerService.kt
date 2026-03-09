@@ -1,6 +1,7 @@
 package com.example.sharedsocial_kmp.data.service
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.result.ActivityResult
@@ -13,11 +14,15 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 
 class AndroidMediaPickerService(
-    private val activity: Activity
+    private var context: Context
 ) : MediaPickerService {
 
     private var launcher: ActivityResultLauncher<Intent>? = null
     private var pendingContinuation: ((CameraResult<MediaAsset>) -> Unit)? = null
+
+    fun updateContext(newContext: Context) {
+        this.context = newContext
+    }
 
     fun attachLauncher(launcher: ActivityResultLauncher<Intent>) {
         this.launcher = launcher
@@ -34,7 +39,7 @@ class AndroidMediaPickerService(
             return
         }
 
-        val mime = activity.contentResolver.getType(uri).orEmpty()
+        val mime = context.contentResolver.getType(uri).orEmpty()
         val value = uri.toString()
 
         val media = if (mime.startsWith("video")) {
@@ -50,10 +55,9 @@ class AndroidMediaPickerService(
     }
 
     override suspend fun pickImageOrVideo(): CameraResult<MediaAsset> {
-        val launcher = launcher
-            ?: return CameraResult.Failure(
-                CameraError.Unknown("Picker launcher non inizializzato")
-            )
+        val currentLauncher = launcher ?: return CameraResult.Failure(
+            CameraError.Unknown("Picker launcher non inizializzato")
+        )
 
         return suspendCancellableCoroutine { cont ->
             pendingContinuation = { result -> cont.resume(result) }
@@ -61,9 +65,9 @@ class AndroidMediaPickerService(
             val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
                 type = "*/*"
                 putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("image/*", "video/*"))
+                addCategory(Intent.CATEGORY_OPENABLE)
             }
-
-            launcher.launch(intent)
+            currentLauncher.launch(intent)
         }
     }
 }
