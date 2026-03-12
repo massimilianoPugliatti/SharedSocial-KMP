@@ -166,7 +166,7 @@ L'app parte da `RootScreen`, che delega a `RootViewModel` la decisione iniziale:
 ```mermaid
 flowchart TD
 
-APP[App()]
+APP[App]
 ROOT[RootScreen]
 ROOTVM[RootViewModel]
 AUTH[IsUserAuthenticatedUseCase]
