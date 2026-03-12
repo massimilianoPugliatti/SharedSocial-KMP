@@ -19,9 +19,9 @@ Il progetto simula una **piattaforma social** e mette in evidenza competenze in:
 
 ## 🎬 Demo
 
-![Video Demo Android](./docs/media/demo_android.mp4)
+https://github.com/user-attachments/assets/65171dfb-64b0-4c8e-8e95-577308de757a
 
-![Video Demo iOS](./docs/media/demo_ios.mp4)
+https://github.com/user-attachments/assets/25d39d64-5b9c-4c09-86b8-e866f6f8d9db
 
 
 Il video mostra:
