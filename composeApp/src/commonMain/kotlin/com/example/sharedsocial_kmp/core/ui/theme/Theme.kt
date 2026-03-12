@@ -6,7 +6,6 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 
-// Definizione completa dello schema Light
 private val lightScheme = lightColorScheme(
     primary = primaryLight,
     onPrimary = onPrimaryLight,
@@ -38,7 +37,6 @@ private val lightScheme = lightColorScheme(
     inversePrimary = inversePrimaryLight,
 )
 
-// Definizione completa dello schema Dark
 private val darkScheme = darkColorScheme(
     primary = primaryDark,
     onPrimary = onPrimaryDark,

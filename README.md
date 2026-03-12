@@ -1,70 +1,334 @@
-# Kotlin Multiplatform Social App
+# SharedSocial-KMP
+
 ![Mobile CI](https://github.com/massimilianoPugliatti/SharedSocial-KMP/actions/workflows/mobile-ci.yml/badge.svg)
 
-Un'applicazione Social moderna costruita con **Kotlin Multiplatform (KMP)** e **Compose Multiplatform**. Il progetto segue rigorosi standard di **Clean Architecture** e gestione dello stato reattiva per garantire parità di feature e performance native tra Android e iOS.
+**SharedSocial-KMP** è uno **showcase tecnico** che dimostra come progettare una mobile app moderna utilizzando **Kotlin Multiplatform** e **Compose Multiplatform**, mantenendo business logic condivisa, integrazioni native Android/iOS e un'architettura orientata alla scalabilità.
 
-## 🎯 Project Purpose
-Questo repository è uno **showcase tecnico** progettato per dimostrare l'applicazione di standard industriali in contesti cross-platform. È il risultato di una ricerca su architetture scalabili, sicurezza dei dati e monitoraggio professionale (Observability).
+Il progetto simula una **piattaforma social** e mette in evidenza competenze in:
 
-L'obiettivo è illustrare la padronanza di:
-* **Architetture Scalabili:** Implementazione di Clean Architecture in contesti multi-modulo.
-* **Full-Stack Awareness:** Integrazione con un ecosistema backend complesso.
-* **Observability & Native Integration:** Gestione dei servizi nativi e monitoraggio professionale.
-* **Modern CI/CD:** Automazione della qualità del codice e della distribuzione degli artefatti.
+- architetture mobile scalabili
+- sviluppo cross-platform
+- integrazione con API native
+- gestione media (foto / video)
+- sicurezza dei dati
+- osservabilità e CI/CD
 
-## 🏗 Architettura & Design Patterns
-* **Clean Architecture:** Separazione netta tra Domain, Data e UI layer per massimizzare la testabilità.
-* **MVI (Model-View-Intent):** Gestione dello stato tramite un flusso unidirezionale (**UDF**) per stati atomici e prevedibili.
-* **Reactive Navigation:** Sistema basato su `NavigationAction` tramite `Channels` e `Flow`, disaccoppiando la logica di presentazione dal framework di navigazione.
-* **Repository Decorator Pattern:** Utilizzo del pattern Decorator per iniettare logica cross-cutting (Analytics, Push Token management) senza contaminare i repository core. 
-* **Deterministic Threading:** Astrazione dei dispatcher tramite `AppDispatchers` per il pieno controllo della concorrenza sia in produzione che nei test.
-
-## 🍎 Shared Native Services (Android & iOS)
-Il progetto gestisce le funzionalità specifiche di piattaforma tramite astrazioni di dominio, garantendo performance e sicurezza native:
-
-* **Firebase Ecosystem:** Integrazione nativa per **Analytics**, **Crashlytics** e **Push Notifications**. La gestione dei log è specchiata su **Logcat** (Android) e **NSLog** (iOS) per facilitare il debugging in tempo reale.
-* **Native Secure Storage:** 
-  * **iOS:** Implementazione in **Swift** basata su **Keychain**, garantendo il salvataggio dei token di sessione nel compartimento sicuro di sistema.
-  * **Android:** Utilizzo di **Jetpack DataStore** integrato con **Google Tink** per crittografia hardware-backed (AES256_GCM).
-
-## 🌐 Backend & API Ecosystem
-L'applicazione si interfaccia con un servizio **RESTful** sviluppato in **Spring Boot 3.x** e ospitato su infrastruttura **Oracle Cloud (OCI)**. L'architettura è stata progettata seguendo standard di sicurezza e separazione delle responsabilità.
-
-* **Infrastruttura:** Utilizzo di reti virtuali isolate (**VCN**) per garantire che il database **MySQL** non sia esposto pubblicamente, comunicando esclusivamente con il layer applicativo.
-* **Sicurezza:** Gestione dell'autenticazione stateless tramite **JWT (JSON Web Token)** e comunicazioni protette via **HTTPS**.
-* **API Documentation:** Il contratto tra client e server è formalizzato tramite lo standard **OpenAPI**, permettendo una validazione rapida degli endpoint tramite Swagger:
-  👉 [**SocialMaster API Documentation**](https://socialmaster.ddns.net/swagger-ui/index.html)
-
-## 🚀 CI/CD Pipeline (GitHub Actions)
-Il progetto implementa un workflow di **Continuous Integration**:
-* **Automated Testing:** Esecuzione di Unit Tests e UI Tests (Robolectric) su Java 21 ad ogni PR.
-* **Build Verification:** Pipeline resiliente che valida la compilazione KMP su ogni commit senza esporre file di configurazione sensibili.
-* **Multi-Platform Build:** Validazione parallela della compilazione Android (APK) e del framework nativo iOS.
-* **Continuous Delivery:** Generazione automatica di artefatti (APK e iOS App) disponibili per il download immediato dalla tab *Actions*.
-
-## 🧪 Testing Strategy (Pyramid Approach)
-La suite di test garantisce affidabilità con il minimo overhead di esecuzione:
-* **Verification of Threading Policy:** Test che validano il corretto cambio di contesto sui dispatcher IO.
-* **UI Integration:** Utilizzo di **Robolectric** per testare i componenti **Compose Multiplatform** sulla JVM, garantendo la corretta interazione tra UI e Business Logic senza emulatore.
-* **Flow Testing:** Validazione delle transizioni di stato del ViewModel e degli eventi di navigazione tramite **Turbine**.
-* **Behavioral Mocking:** Utilizzo di **Mokkery** per il mocking type-safe dei servizi di dominio.
-* **Stability:** Iniezione di `TestAppDispatchers` per eliminare il non-determinismo nei test asincroni.
-
-## 🛠 Tech Stack
-* **Logic:** [Kotlin Multiplatform](https://kotlinlang.org/docs/multiplatform.html)
-* **UI:** [Compose Multiplatform](https://www.jetbrains.com/lp/compose-multiplatform/)
-* **DI:** [Koin](https://insert-koin.io/) (moduli platform-specific `androidModule` e `iosModule`).
-* **Networking:** [Ktor](https://ktor.io/) (Client Auth, Logging, Content Negotiation).
-* **Services:** [Firebase](https://firebase.google.com/) (Analytics, Crashlytics, Cloud Messaging).
-* **Persistence:** [Jetpack DataStore](https://developer.android.com/topic/libraries/architecture/datastore) + [Google Tink](https://github.com/tink-crypto/tink-kotlin) (AES256_GCM hardware-backed).
-* **Secure Storage:** Cifratura dei token tramite Google Tink su Android e **Keychain** su iOS.
-* **Testing:** [Mokkery](https://github.com/lwasyl/Mokkery), [Turbine](https://github.com/cashapp/turbine), [Robolectric](https://robolectric.org/).
-
-## 🗺 Roadmap
-- [x] Setup Architetturale, BaseTest e CI/CD.
-- [x] Implementazione Auth Flow (Login) con monitoraggio e servizi nativi.
-- [x] **Secure Persistence:** Integrazione Tink (Android) e Keychain (iOS).
-- [ ] **Next Step:** Sviluppo del Feed Social e integrazione Coil Multiplatform.
+> Questo repository è pensato come **portfolio tecnico**: alcune feature sono complete end-to-end, altre sono volutamente lasciate a uno stadio intermedio per mostrare i confini architetturali e i prossimi step evolutivi.
 
 ---
-*Sviluppato da **Massimiliano Pugliatti*** *Mobile Developer & Technical Instructor*
+
+## 🎬 Demo
+
+https://github.com/user-attachments/assets/65171dfb-64b0-4c8e-8e95-577308de757a
+
+https://github.com/user-attachments/assets/25d39d64-5b9c-4c09-86b8-e866f6f8d9db
+
+
+Il video mostra:
+
+- bootstrap applicativo e routing iniziale
+- registrazione / login
+- home pager con flusso **Photo → Feed → Video**
+- preview camera nativa
+- acquisizione foto
+- registrazione video
+- selezione media da libreria
+- schermata **Create Post** con preview del media e caption
+
+---
+
+## 🎯 Project Purpose
+
+L'obiettivo del progetto è mostrare come costruire un'app mobile cross-platform che:
+
+- condivida **business logic** tra Android e iOS
+- mantenga **UI condivisa** con Compose Multiplatform
+- utilizzi **servizi nativi quando necessario**
+- rimanga **architetturalmente pulita e testabile**
+- integri componenti reali di backend, persistenza e observability
+
+La repo non è una semplice demo di UI: è pensata per evidenziare il modo in cui si progettano **confini architetturali, adapter di piattaforma e flussi applicativi reattivi** in un contesto KMP.
+
+---
+
+## ✨ Current Feature Set
+
+### Authentication
+- login utente
+- validazione input
+- gestione sessione
+- persistenza sicura dei token
+
+### Registration
+- registrazione utente
+- validazione form
+- mapping errori dedicato
+- integrazione con backend REST
+
+### Feed
+- caricamento post
+- refresh
+- like/unlike ottimistico
+- input per nuovo contenuto testuale
+- architettura pronta per arricchimento con media rendering
+
+### Home Pager
+- orchestrazione principale dell'app post-login
+- esperienza di navigazione orizzontale ispirata alle app social
+- composizione di tre stati logici:
+    - **Photo**
+    - **Feed**
+    - **Video**
+
+### Camera & Media
+- preview camera nativa Android/iOS
+- acquisizione foto
+- registrazione video
+- selezione media da libreria
+- gestione permessi camera/microfono
+- astrazioni condivise per preview, picker e servizi camera
+
+### Create Post
+- preview del media selezionato/acquisito
+- inserimento caption
+- costruzione della bozza di pubblicazione
+- separazione architetturale tra acquisizione media e composizione del post
+
+### Observability
+- Analytics
+- Crash reporting
+- integrazione con ecosistema Firebase
+
+---
+
+## 🛠 Tech Stack
+
+### Core
+- **Kotlin**
+- **Kotlin Multiplatform**
+- **Compose Multiplatform**
+- **Coroutines / Flow**
+- **Voyager**
+- **Koin**
+
+### Networking
+- **Ktor Client**
+- **Kotlin Serialization**
+- integrazione REST con backend Spring Boot
+
+### Native integrations
+- **Android**
+    - CameraX
+    - PreviewView
+    - Activity Result API
+    - DataStore
+    - Google Tink
+- **iOS**
+    - AVFoundation
+    - AVCaptureSession / AVCaptureVideoPreviewLayer
+    - PHPicker
+    - Keychain
+    - Swift bootstrap per i servizi nativi
+
+### Observability & Platform Services
+- **Firebase Analytics**
+- **Firebase Crashlytics**
+- **Push / notification capability setup**
+- log e servizi nativi integrati in modo multipiattaforma
+
+### Testing
+- **Mokkery**
+- **Turbine**
+- **Robolectric**
+- dispatcher di test dedicati
+
+---
+
+## 🏗 Architecture at a Glance
+
+Il progetto utilizza una **feature-based architecture** combinata con i principi della **Clean Architecture**.
+
+Ogni feature evolve attorno a tre layer principali:
+
+```text
+feature
+ ├── presentation
+ ├── domain
+ └── data
+```
+
+Le integrazioni native non vengono chiamate direttamente dal dominio, ma attraversano contratti condivisi e implementazioni di piattaforma.
+
+```mermaid
+flowchart TD
+
+UI[Compose UI]
+VM[ViewModel / ScreenModel]
+UC[Use Cases]
+REPO[Repository / Platform Contracts]
+DATA[Repository / Platform Implementations]
+NATIVE[Android / iOS APIs]
+
+UI --> VM
+VM --> UC
+UC --> REPO
+REPO --> DATA
+DATA --> NATIVE
+```
+
+Per una spiegazione completa della struttura e dei trade-off:
+
+- [`docs/architecture.md`](docs/architecture.md)
+- [`docs/design_decisions.md`](docs/design_decisions.md)
+
+---
+
+## 🍎 Native Services & Secure Storage
+
+Le capability specifiche di piattaforma sono incapsulate dietro contratti condivisi.
+
+Esempi significativi nella repo:
+
+- `AnalyticsService`
+- `CameraService`
+- `CameraPermissionService`
+- `CameraPermissionRequester`
+- `CameraPreviewRenderer`
+- `MediaPickerService`
+- `MediaPreviewRenderer`
+- `SecureStorage`
+
+### Android
+- CameraX per preview, photo capture e video recording
+- DataStore + Google Tink per persistenza sicura
+- componenti Android-specifici per permission request e media preview
+
+### iOS
+- AVFoundation per preview, capture e recording
+- PHPicker per media selection
+- Keychain per secure storage
+- servizi Swift iniettati nel mondo KMP tramite Koin bootstrap
+
+---
+
+## 🌐 Backend & API Ecosystem
+
+L'applicazione dialoga con un backend **REST** sviluppato in **Spring Boot**, pensato per supportare un dominio social con autenticazione stateless.
+
+Caratteristiche del flusso client/server:
+
+- autenticazione **JWT**
+- comunicazione **HTTPS**
+- documentazione API tramite **OpenAPI / Swagger**
+- mapping esplicito DTO → Domain
+
+Swagger UI:
+
+👉 https://socialmaster.ddns.net/swagger-ui/index.html
+
+---
+
+## 🚀 CI/CD
+
+Il progetto include una pipeline **GitHub Actions** con:
+
+- esecuzione dei test
+- build Android
+- build framework/shared layer per iOS
+- build dell'app iOS via Xcode CLI
+- upload degli artefatti
+
+Questo rende la repo più vicina a un flusso di lavoro reale e non solo a una demo locale.
+
+---
+
+## 🧪 Testing Strategy
+
+La strategia di test punta a verificare soprattutto:
+
+- use case
+- ViewModel
+- persistenza
+- navigation flow
+- comportamento asincrono tramite dispatcher controllati
+
+Il repository include:
+
+- test nel modulo `commonTest`
+- test di ViewModel
+- test di persistenza/auth
+- test UI Android con Robolectric
+
+---
+
+## 📁 Project Structure
+
+```text
+composeApp/
+ ├── src/commonMain/
+ │   ├── core/
+ │   ├── features/
+ │   └── root/
+ │
+ ├── src/androidMain/
+ └── src/iosMain/
+
+iosApp/
+docs/
+```
+
+Feature principali presenti oggi:
+
+```text
+auth
+register
+feed
+camera
+createpost
+home
+root
+```
+
+---
+
+## 🗺 Roadmap
+
+### Completed
+- Kotlin Multiplatform setup
+- Compose Multiplatform UI
+- authentication flow
+- secure storage multipiattaforma
+- feed architecture
+- home pager
+- camera feature Android/iOS
+- media picker Android/iOS
+- create post draft flow
+- CI pipeline base
+
+### In Progress
+- integrazione submit reale della feature create post
+- rendering media nel feed
+- consolidamento documentazione e polishing UX
+
+### Planned
+- upload media
+- image loading multipiattaforma
+- video playback nel feed
+- offline/cache strategy
+- evoluzione della feature createpost verso pubblicazione completa
+
+---
+
+## 📚 Technical Documentation
+
+Per il dettaglio tecnico:
+
+- [`docs/architecture.md`](docs/architecture.md)
+- [`docs/design_decisions.md`](docs/design_decisions.md)
+
+---
+
+## Author
+
+**Massimiliano Pugliatti**  
+Mobile Developer

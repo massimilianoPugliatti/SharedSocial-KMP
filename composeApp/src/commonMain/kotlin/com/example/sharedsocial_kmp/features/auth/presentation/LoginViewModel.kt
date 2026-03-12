@@ -50,7 +50,7 @@ class LoginViewModel(
                     _state.update {
                         it.copy(
                             isLoading = false,
-                            errorMessage = LoginErrorMapper.mapToMessage(error)
+                            errorMessage = AuthErrorUIResolver.mapToMessage(error)
                         )
                     }
                 }
@@ -63,7 +63,7 @@ class LoginViewModel(
             it.copy(
                 email = value,
                 emailError = if (validation is ValidationResult.Invalid) {
-                    LoginErrorMapper.mapValidationReason(AuthField.EMAIL, validation.reason)
+                    AuthErrorUIResolver.mapValidationReason(AuthField.EMAIL, validation.reason)
                 } else null,
                 errorMessage = null
             )
@@ -77,7 +77,7 @@ class LoginViewModel(
             it.copy(
                 password = value,
                 passwordError = if (validation is ValidationResult.Invalid) {
-                    LoginErrorMapper.mapValidationReason(AuthField.PASSWORD, validation.reason)
+                    AuthErrorUIResolver.mapValidationReason(AuthField.PASSWORD, validation.reason)
                 } else null,
                 errorMessage = null
             )

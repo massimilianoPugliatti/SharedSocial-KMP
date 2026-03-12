@@ -9,5 +9,6 @@ data class CameraState(
     val selectedMode: CameraMode = CameraMode.PHOTO,
     val elapsedRecordingSeconds: Long = 0L,
     val capturedMedia: MediaAsset? = null,
-    val uiMessage: CameraUiMessage? = null
+    val uiMessage: CameraUiMessage? = null,
+    val requestPermissions: Boolean = false,
 )

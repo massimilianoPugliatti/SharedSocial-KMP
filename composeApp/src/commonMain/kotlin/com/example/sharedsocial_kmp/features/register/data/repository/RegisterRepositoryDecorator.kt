@@ -1,6 +1,6 @@
 package com.example.sharedsocial_kmp.features.register.data.repository
 
-import com.example.sharedsocial_kmp.core.service.AnalyticsService
+import com.example.sharedsocial_kmp.core.platform.AnalyticsService
 import com.example.sharedsocial_kmp.features.register.domain.repository.RegisterRepository
 
 /**

@@ -5,12 +5,17 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
-import com.example.sharedsocial_kmp.data.local.AndroidSecureStorage
+import com.example.sharedsocial_kmp.platform.AndroidSecureStorage
 import com.example.sharedsocial_kmp.features.auth.data.local.SecureStorage
-import com.example.sharedsocial_kmp.data.service.AndroidAnalyticsService
-import com.example.sharedsocial_kmp.core.service.AnalyticsService
-import com.example.sharedsocial_kmp.core.service.MediaPickerService
-import com.example.sharedsocial_kmp.data.service.AndroidMediaPickerService
+import com.example.sharedsocial_kmp.platform.AndroidAnalyticsService
+import com.example.sharedsocial_kmp.core.platform.AnalyticsService
+import com.example.sharedsocial_kmp.core.platform.CameraPermissionRequester
+import com.example.sharedsocial_kmp.core.platform.MediaPickerService
+import com.example.sharedsocial_kmp.core.platform.MediaPreviewRenderer
+import com.example.sharedsocial_kmp.platform.AndroidCameraPermissionRequester
+import com.example.sharedsocial_kmp.platform.AndroidMediaPickerService
+import com.example.sharedsocial_kmp.platform.AndroidMediaPreviewRenderer
+import org.koin.dsl.bind
 import org.koin.dsl.module
 
 /**
@@ -52,4 +57,11 @@ val androidModule = module {
     }
 
     single<MediaPickerService> { get<AndroidMediaPickerService>() }
+
+    single<MediaPreviewRenderer> {
+        AndroidMediaPreviewRenderer(context = get())
+    }
+    single {
+        AndroidCameraPermissionRequester()
+    } bind CameraPermissionRequester::class
 }

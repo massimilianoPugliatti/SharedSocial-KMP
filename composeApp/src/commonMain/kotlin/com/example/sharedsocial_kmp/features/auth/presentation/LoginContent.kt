@@ -40,7 +40,7 @@ import sharedsocialkmp.composeapp.generated.resources.icona
 @Composable
 fun LoginContent(
     state: LoginState,
-    onEvent: (LoginEvent) -> Unit
+    onEvent: (LoginEvent) -> Unit,
 ) {
     Scaffold(
         modifier = Modifier.fillMaxSize()
@@ -114,7 +114,7 @@ private fun LoginHeader() {
 private fun LoginFields(
     state: LoginState,
     onEvent: (LoginEvent) -> Unit,
-    isEnabled: Boolean
+    isEnabled: Boolean,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         AppTextField(
@@ -128,12 +128,9 @@ private fun LoginFields(
                 keyboardType = KeyboardType.Email,
                 imeAction = ImeAction.Next
             ),
-            modifier = Modifier.semantics{
+            modifier = Modifier.semantics {
                 contentType = ContentType.EmailAddress
-            }
-
-            ,
-            //contentType = ContentType.EmailAddress
+            },
         )
         AppTextField(
             value = state.password,

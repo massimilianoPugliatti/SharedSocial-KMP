@@ -1,9 +1,9 @@
 package com.example.sharedsocial_kmp.di
 
-import com.example.sharedsocial_kmp.core.service.CameraPermissionService
-import com.example.sharedsocial_kmp.core.service.CameraPreviewRenderer
-import com.example.sharedsocial_kmp.core.service.CameraService
-import com.example.sharedsocial_kmp.core.service.MediaPickerService
+import com.example.sharedsocial_kmp.core.platform.CameraPermissionService
+import com.example.sharedsocial_kmp.core.platform.CameraPreviewRenderer
+import com.example.sharedsocial_kmp.core.platform.CameraService
+import com.example.sharedsocial_kmp.core.platform.MediaPickerService
 import com.example.sharedsocial_kmp.features.camera.domain.usecase.CapturePhotoUseCase
 import com.example.sharedsocial_kmp.features.camera.domain.usecase.CapturePhotoUseCaseImpl
 import com.example.sharedsocial_kmp.features.camera.domain.usecase.PickMediaUseCase
@@ -36,5 +36,5 @@ fun cameraIosModule(
     factoryOf(::SwitchCameraUseCaseImpl) bind SwitchCameraUseCase::class
     factoryOf(::PickMediaUseCaseImpl) bind PickMediaUseCase::class
 
-    factory { CameraViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    factory { CameraViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
 }

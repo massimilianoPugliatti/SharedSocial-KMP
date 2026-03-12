@@ -2,8 +2,8 @@ package com.example.sharedsocial_kmp.features.auth.data.repository
 
 import com.example.sharedsocial_kmp.features.auth.domain.model.User
 import com.example.sharedsocial_kmp.features.auth.domain.repository.AuthRepository
-import com.example.sharedsocial_kmp.core.service.AnalyticsService
-import com.example.sharedsocial_kmp.core.service.PermissionService
+import com.example.sharedsocial_kmp.core.platform.AnalyticsService
+import com.example.sharedsocial_kmp.core.service.NotificationPermissionService
 import com.mmk.kmpnotifier.notification.PushNotifier
 
 /**
@@ -14,7 +14,7 @@ class AuthRepositoryDecorator(
     private val delegate: AuthRepository,
     private val analytics: AnalyticsService,
     private val pushNotifier: PushNotifier,
-    private val permissionService: PermissionService
+    private val notificationPermissionService: NotificationPermissionService
 ) : AuthRepository by delegate {
 
     override suspend fun login(email: String, password: String): Result<User> {
@@ -23,7 +23,7 @@ class AuthRepositoryDecorator(
             analytics.logEvent("login_success")
 
             registerFirebaseToken()
-            permissionService.askNotificationPermission()
+            notificationPermissionService.askNotificationPermission()
         }.onFailure { error ->
             analytics.recordNonFatalException(error)
             analytics.logEvent("login_failure", mapOf("type" to (error::class.simpleName ?: "Unknown")))

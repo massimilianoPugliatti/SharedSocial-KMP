@@ -10,6 +10,7 @@
 		324AE5032F5F2EC400E94B6E /* IOSCameraEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 324AE5022F5F2EC400E94B6E /* IOSCameraEngine.swift */; };
 		324AE5052F5F2EE600E94B6E /* IOSCameraFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 324AE5042F5F2EE600E94B6E /* IOSCameraFacade.swift */; };
 		324AE5072F5F381500E94B6E /* IOSMediaPickerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 324AE5062F5F381500E94B6E /* IOSMediaPickerService.swift */; };
+		32C471592F624E0100D29B68 /* IOSCameraEngineError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32C471582F624E0100D29B68 /* IOSCameraEngineError.swift */; };
 		32DF1ACF2F54897900573404 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 32DF1ACE2F54897900573404 /* FirebaseAnalytics */; };
 		32DF1AD12F54897900573404 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 32DF1AD02F54897900573404 /* FirebaseCore */; };
 		32DF1AD32F54897900573404 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = 32DF1AD22F54897900573404 /* FirebaseCrashlytics */; };
@@ -28,6 +29,7 @@
 		324AE5022F5F2EC400E94B6E /* IOSCameraEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOSCameraEngine.swift; sourceTree = "<group>"; };
 		324AE5042F5F2EE600E94B6E /* IOSCameraFacade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOSCameraFacade.swift; sourceTree = "<group>"; };
 		324AE5062F5F381500E94B6E /* IOSMediaPickerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOSMediaPickerService.swift; sourceTree = "<group>"; };
+		32C471582F624E0100D29B68 /* IOSCameraEngineError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOSCameraEngineError.swift; sourceTree = "<group>"; };
 		32DF1AE42F54971600573404 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		32DF1AE62F54971600573404 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		32DF1AE72F54971600573404 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -99,6 +101,7 @@
 		32DF1AF62F54987E00573404 /* Platform */ = {
 			isa = PBXGroup;
 			children = (
+				32C471582F624E0100D29B68 /* IOSCameraEngineError.swift */,
 				324AE5062F5F381500E94B6E /* IOSMediaPickerService.swift */,
 				324AE5042F5F2EE600E94B6E /* IOSCameraFacade.swift */,
 				324AE5022F5F2EC400E94B6E /* IOSCameraEngine.swift */,
@@ -231,6 +234,7 @@
 			files = (
 				324AE5072F5F381500E94B6E /* IOSMediaPickerService.swift in Sources */,
 				324AE5032F5F2EC400E94B6E /* IOSCameraEngine.swift in Sources */,
+				32C471592F624E0100D29B68 /* IOSCameraEngineError.swift in Sources */,
 				32DF1AED2F54971600573404 /* ContentView.swift in Sources */,
 				32DF1AF52F54987700573404 /* KoinDependencies.swift in Sources */,
 				324AE5052F5F2EE600E94B6E /* IOSCameraFacade.swift in Sources */,
@@ -253,7 +257,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_ASSET_PATHS = "\"iosApp/Preview Content\"";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 45CSP53RQ3;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = iosApp/Info.plist;
@@ -285,7 +289,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_ASSET_PATHS = "\"iosApp/Preview Content\"";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 45CSP53RQ3;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = iosApp/Info.plist;

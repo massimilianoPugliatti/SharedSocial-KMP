@@ -7,10 +7,12 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.LaunchedEffect
-import com.example.sharedsocial_kmp.core.service.CameraService
-import com.example.sharedsocial_kmp.data.service.AndroidCameraFacade
-import com.example.sharedsocial_kmp.data.service.AndroidMediaPickerService
+import com.example.sharedsocial_kmp.core.platform.CameraService
+import com.example.sharedsocial_kmp.platform.AndroidCameraFacade
+import com.example.sharedsocial_kmp.platform.AndroidCameraPermissionRequester
+import com.example.sharedsocial_kmp.platform.AndroidMediaPickerService
 import com.mmk.kmpnotifier.permission.permissionUtil
+import org.koin.compose.koinInject
 import org.koin.mp.KoinPlatform.getKoin
 
 class MainActivity : ComponentActivity() {
@@ -34,6 +36,18 @@ class MainActivity : ComponentActivity() {
             ) { result ->
                 mediaPickerService.onActivityResult(result)
             }
+            val permissionRequester: AndroidCameraPermissionRequester = koinInject()
+
+            val permissionLauncher = rememberLauncherForActivityResult(
+                contract = ActivityResultContracts.RequestMultiplePermissions()
+            ) { result ->
+                permissionRequester.onPermissionsResult(result)
+            }
+
+            LaunchedEffect(permissionLauncher) {
+                permissionRequester.attachLauncher(permissionLauncher)
+            }
+
 
             LaunchedEffect(launcher) {
                 mediaPickerService.attachLauncher(launcher)

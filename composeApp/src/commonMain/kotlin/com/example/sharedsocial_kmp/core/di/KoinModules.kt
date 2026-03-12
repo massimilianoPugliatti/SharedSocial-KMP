@@ -8,8 +8,8 @@ import com.example.sharedsocial_kmp.features.auth.data.local.AuthPersistenceImpl
 import com.example.sharedsocial_kmp.features.auth.data.repository.AuthRepositoryDecorator
 import com.example.sharedsocial_kmp.features.auth.data.repository.KtorAuthRepository
 import com.example.sharedsocial_kmp.features.auth.domain.repository.AuthRepository
-import com.example.sharedsocial_kmp.core.service.PermissionService
-import com.example.sharedsocial_kmp.core.service.PermissionServiceImpl
+import com.example.sharedsocial_kmp.core.service.NotificationPermissionService
+import com.example.sharedsocial_kmp.core.service.NotificationPermissionServiceImpl
 import com.example.sharedsocial_kmp.features.auth.domain.usecase.IsUserAuthenticatedUseCaseImpl
 import com.example.sharedsocial_kmp.features.feed.domain.usecase.ToggleLikeUseCase
 import com.example.sharedsocial_kmp.features.feed.domain.usecase.ToggleLikeUseCaseImpl
@@ -20,7 +20,9 @@ import com.example.sharedsocial_kmp.features.auth.domain.usecase.LoginUseCase
 import com.example.sharedsocial_kmp.features.auth.domain.usecase.LoginUseCaseImpl
 import com.example.sharedsocial_kmp.features.feed.presentation.FeedViewModel
 import com.example.sharedsocial_kmp.features.auth.presentation.LoginViewModel
+import com.example.sharedsocial_kmp.features.camera.domain.model.MediaAsset
 import com.example.sharedsocial_kmp.features.camera.presentation.CameraViewModel
+import com.example.sharedsocial_kmp.features.createpost.presentation.CreatePostViewModel
 import com.example.sharedsocial_kmp.features.feed.data.repository.FeedRepositoryDecorator
 import com.example.sharedsocial_kmp.features.feed.data.repository.KtorFeedRepository
 import com.example.sharedsocial_kmp.features.feed.domain.repository.FeedRepository
@@ -48,8 +50,8 @@ val commonModule = module {
     // Core & Navigation
     single<AppNavigator> { AppNavigatorImpl() }
     single<AppDispatchers> { RealAppDispatchers() }
-    single<PermissionService> {
-        PermissionServiceImpl()
+    single<NotificationPermissionService> {
+        NotificationPermissionServiceImpl()
     }
 
     // Data & Persistence
@@ -66,7 +68,7 @@ val commonModule = module {
             delegate = get(named("base_auth_repo")),
             analytics = get(),
             pushNotifier = NotifierManager.getPushNotifier(),
-            permissionService = get()
+            notificationPermissionService = get()
         )
     }
     single<RegisterRepository>(named("base_register_repo")) {
@@ -81,7 +83,7 @@ val commonModule = module {
             analytics = get(),
         )
     }
-    single<FeedRepository> ( named("base_feed_repo")) {
+    single<FeedRepository>(named("base_feed_repo")) {
         KtorFeedRepository(
             httpClient = get(),
             dispatchers = get()
@@ -98,10 +100,9 @@ val commonModule = module {
     factory<LoginUseCase> { LoginUseCaseImpl(get(), get()) }
     factory<IsUserAuthenticatedUseCase> { IsUserAuthenticatedUseCaseImpl(get()) }
     factory<RegisterUseCase> { RegisterUseCaseImpl(get(), get()) }
-    factory<GetPostsUseCase> { GetPostsUseCaseImpl(get(),get()) }
-    factory<NewPostUseCase>{ NewPostuseCaseImpl(get(),get()) }
-    factory<ToggleLikeUseCase>{ ToggleLikeUseCaseImpl(get(),get()) }
-
+    factory<GetPostsUseCase> { GetPostsUseCaseImpl(get(), get()) }
+    factory<NewPostUseCase> { NewPostuseCaseImpl(get(), get()) }
+    factory<ToggleLikeUseCase> { ToggleLikeUseCaseImpl(get(), get()) }
 
 
     // ViewModels
@@ -109,5 +110,6 @@ val commonModule = module {
     factory { LoginViewModel(get(), get(), get()) }
     factory { RegisterViewModel(get(), get(), get()) }
     factory { FeedViewModel(get(), get(), get(), get(), get()) }
-    factory { CameraViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    factory { CameraViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(),get()) }
+    factory { (media: MediaAsset) -> CreatePostViewModel(navigator = get(), initialMedia = media) }
 }

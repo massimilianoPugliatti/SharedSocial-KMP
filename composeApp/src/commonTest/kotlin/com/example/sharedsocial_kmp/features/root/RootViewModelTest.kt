@@ -7,6 +7,7 @@ import com.example.sharedsocial_kmp.core.navigation.AppNavigatorImpl
 import com.example.sharedsocial_kmp.core.navigation.NavigationAction
 import com.example.sharedsocial_kmp.features.feed.presentation.FeedScreen
 import com.example.sharedsocial_kmp.features.auth.presentation.LoginScreen
+import com.example.sharedsocial_kmp.features.home.presentation.HomePagerScreen
 import com.example.sharedsocial_kmp.root.RootViewModel
 import dev.mokkery.answering.returns
 import dev.mokkery.everySuspend
@@ -49,7 +50,7 @@ class RootViewModelTest : BaseTest() {
         navigator.navigationEvents.test {
             val action = awaitItem()
             assertTrue(action is NavigationAction.ReplaceAll)
-            assertTrue(action.screen is FeedScreen)
+            assertTrue(action.screen is HomePagerScreen)
         }
     }
 

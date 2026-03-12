@@ -5,17 +5,17 @@
 //  Created by Massimiliano Pugliatti on 09/03/26.
 //
 
-import UIKit
-import ComposeApp
 import AVFoundation
+import ComposeApp
+import UIKit
 
 final class IOSCameraFacade: NSObject, CameraService, CameraPermissionService {
 
     private let engine = IOSCameraEngine()
+    private var isConfigured = false
 
     override init() {
         super.init()
-        try? engine.configureSessionIfNeeded()
     }
 
     func makePreviewController() -> UIViewController {
@@ -23,6 +23,8 @@ final class IOSCameraFacade: NSObject, CameraService, CameraPermissionService {
     }
 
     func start() async throws -> any CameraResult {
+        configureIfNeeded()
+        engine.startSessionIfNeeded()
         return CameraResultSuccess(value: KotlinUnit())
     }
 
@@ -32,60 +34,65 @@ final class IOSCameraFacade: NSObject, CameraService, CameraPermissionService {
     }
 
     func switchCamera() async throws -> any CameraResult {
-        do {
-            try engine.switchCamera()
-            return CameraResultSuccess(value: KotlinUnit())
-        } catch {
-            return CameraResultFailure(error: CameraErrorCameraUnavailable())
-        }
+        engine.switchCamera()
+        return CameraResultSuccess(value: KotlinUnit())
     }
 
     func capturePhoto() async throws -> any CameraResult {
         return await withCheckedContinuation { continuation in
-            engine.capturePhoto { path in
-                guard let path else {
-                    continuation.resume(
-                        returning: CameraResultFailure(error: CameraErrorCaptureFailed())
+            engine.capturePhoto { result in
+                switch result {
+                case .success(let path):
+                    let media = MediaAssetPhoto(
+                        localPath: path,
+                        mimeType: "image/jpeg"
                     )
-                    return
+
+                    continuation.resume(
+                        returning: CameraResultSuccess(value: media)
+                    )
+
+                case .failure(let error):
+                    continuation.resume(
+                        returning: CameraResultFailure(
+                            error: self.mapPlatformError(error)
+                        )
+                    )
                 }
-
-                let media = MediaAssetPhoto(
-                    localPath: path,
-                    mimeType: "image/jpeg"
-                )
-
-                continuation.resume(
-                    returning: CameraResultSuccess(value: media)
-                )
             }
         }
     }
 
     func startVideoRecording() async throws -> any CameraResult {
-        engine.startRecording()
+        if let error = engine.startRecording() {
+            return CameraResultFailure(error: mapPlatformError(error))
+        }
+
         return CameraResultSuccess(value: KotlinUnit())
     }
 
     func stopVideoRecording() async throws -> any CameraResult {
         return await withCheckedContinuation { continuation in
-            engine.stopRecording { path in
-                guard let path else {
-                    continuation.resume(
-                        returning: CameraResultFailure(error: CameraErrorCaptureFailed())
+            engine.stopRecording { result in
+                switch result {
+                case .success(let path):
+                    let media = MediaAssetVideo(
+                        localPath: path,
+                        mimeType: "video/mp4",
+                        durationMillis: nil
                     )
-                    return
+
+                    continuation.resume(
+                        returning: CameraResultSuccess(value: media)
+                    )
+
+                case .failure(let error):
+                    continuation.resume(
+                        returning: CameraResultFailure(
+                            error: self.mapPlatformError(error)
+                        )
+                    )
                 }
-
-                let media = MediaAssetVideo(
-                    localPath: path,
-                    mimeType: "video/mp4",
-                    durationMillis: nil
-                )
-
-                continuation.resume(
-                    returning: CameraResultSuccess(value: media)
-                )
             }
         }
     }
@@ -99,7 +106,9 @@ final class IOSCameraFacade: NSObject, CameraService, CameraPermissionService {
                     )
                 } else {
                     continuation.resume(
-                        returning: CameraResultFailure(error: CameraErrorPermissionDenied())
+                        returning: CameraResultFailure(
+                            error: CameraErrorPermissionDenied()
+                        )
                     )
                 }
             }
@@ -115,10 +124,46 @@ final class IOSCameraFacade: NSObject, CameraService, CameraPermissionService {
                     )
                 } else {
                     continuation.resume(
-                        returning: CameraResultFailure(error: CameraErrorMicrophonePermissionDenied())
+                        returning: CameraResultFailure(
+                            error: CameraErrorMicrophonePermissionDenied()
+                        )
                     )
                 }
             }
+        }
+    }
+
+    private func configureIfNeeded() {
+        guard !isConfigured else { return }
+        engine.configureSessionIfNeeded()
+        isConfigured = true
+    }
+
+    private func mapPlatformError(_ error: IOSCameraEngineError) -> any CameraError {
+        switch error {
+        case .notConfigured:
+            return CameraErrorCameraUnavailable()
+
+        case .cameraUnavailable:
+            return CameraErrorCameraUnavailable()
+
+        case .microphoneUnavailable:
+            return CameraErrorMicrophonePermissionDenied()
+
+        case .captureFailed:
+            return CameraErrorCaptureFailed()
+
+        case .recordingAlreadyStarted:
+            return CameraErrorRecordingAlreadyStarted()
+
+        case .recordingNotStarted:
+            return CameraErrorRecordingNotStarted()
+
+        case .permissionDenied:
+            return CameraErrorPermissionDenied()
+
+        case .unknown(let message):
+            return CameraErrorUnknown(message: message)
         }
     }
 }

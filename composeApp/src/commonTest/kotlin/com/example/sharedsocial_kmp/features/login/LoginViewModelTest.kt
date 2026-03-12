@@ -7,11 +7,12 @@ import com.example.sharedsocial_kmp.features.auth.domain.model.User
 import com.example.sharedsocial_kmp.core.navigation.NavigationAction
 import com.example.sharedsocial_kmp.core.navigation.AppNavigatorImpl
 import com.example.sharedsocial_kmp.features.auth.domain.usecase.LoginUseCase
-import com.example.sharedsocial_kmp.features.auth.presentation.LoginErrorMapper
+import com.example.sharedsocial_kmp.features.auth.presentation.AuthErrorUIResolver
 import com.example.sharedsocial_kmp.features.auth.presentation.LoginEvent
 import com.example.sharedsocial_kmp.features.auth.presentation.LoginState
 import com.example.sharedsocial_kmp.features.auth.presentation.LoginViewModel
 import com.example.sharedsocial_kmp.features.feed.presentation.FeedScreen
+import com.example.sharedsocial_kmp.features.home.presentation.HomePagerScreen
 import dev.mokkery.MokkeryBlockingCallScope
 import dev.mokkery.MokkerySuspendCallScope
 import dev.mokkery.annotations.DelicateMokkeryApi
@@ -61,7 +62,7 @@ class LoginViewModelTest : BaseTest() {
 
             val action = awaitItem()
             assertTrue(action is NavigationAction.ReplaceAll)
-            assertTrue(action.screen is FeedScreen)
+            assertTrue(action.screen is HomePagerScreen)
         }
     }
 
@@ -116,7 +117,7 @@ class LoginViewModelTest : BaseTest() {
             navigator.navigationEvents.test {
                 val action = awaitItem()
                 assertTrue(action is NavigationAction.ReplaceAll)
-                assertTrue(action.screen is FeedScreen)
+                assertTrue(action.screen is HomePagerScreen)
             }
         }
     }
@@ -129,7 +130,7 @@ class LoginViewModelTest : BaseTest() {
     fun `when login fails, verify error state covers all fields`() = runTest {
         val email = "error@test.it"
         val pass = "wrongpass"
-        val expectedErrorMsg = LoginErrorMapper.mapToMessage(AuthError.InvalidCredentials())
+        val expectedErrorMsg = AuthErrorUIResolver.mapToMessage(AuthError.InvalidCredentials())
 
         everySuspend {
             loginUseCase(
@@ -203,7 +204,7 @@ class LoginViewModelTest : BaseTest() {
      */
     @Test
     fun `when repository returns timeout error, state should show specific message`() = runTest {
-        val errorMsg = LoginErrorMapper.mapToMessage(AuthError.NetworkError())
+        val errorMsg = AuthErrorUIResolver.mapToMessage(AuthError.NetworkError())
 
         everySuspend { loginUseCase(any(), any()) } returns Result.failure(AuthError.NetworkError())
 
