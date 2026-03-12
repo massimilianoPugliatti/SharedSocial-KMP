@@ -1,5 +1,6 @@
 package com.example.sharedsocial_kmp.core.navigation
 
+import com.example.sharedsocial_kmp.features.camera.domain.model.MediaAsset
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -39,4 +40,5 @@ interface AppNavigator {
     fun navigateToProfile(userId: Long)
 
     fun navigateToComments(postId: Long)
+    fun navigateToCreatePost(value: MediaAsset)
 }

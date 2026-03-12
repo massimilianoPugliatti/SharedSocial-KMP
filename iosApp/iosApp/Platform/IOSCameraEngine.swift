@@ -5,9 +5,59 @@
 //  Created by Massimiliano Pugliatti on 09/03/26.
 //
 
+import AVFoundation
 import Foundation
 import UIKit
-import AVFoundation
+
+final class IOSCameraPreviewViewController: UIViewController {
+    private let previewLayer: AVCaptureVideoPreviewLayer
+
+    init(session: AVCaptureSession) {
+        self.previewLayer = AVCaptureVideoPreviewLayer(session: session)
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = .black
+
+        previewLayer.videoGravity = .resizeAspect
+        previewLayer.needsDisplayOnBoundsChange = true
+
+        view.layer.addSublayer(previewLayer)
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        applyPreviewFrame()
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        applyPreviewFrame()
+
+        DispatchQueue.main.async { [weak self] in
+            self?.applyPreviewFrame()
+        }
+    }
+
+    override func viewSafeAreaInsetsDidChange() {
+        super.viewSafeAreaInsetsDidChange()
+        applyPreviewFrame()
+    }
+
+    private func applyPreviewFrame() {
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        previewLayer.frame = view.bounds
+        CATransaction.commit()
+    }
+}
 
 final class IOSCameraEngine: NSObject, AVCapturePhotoCaptureDelegate, AVCaptureFileOutputRecordingDelegate {
 
@@ -19,34 +69,44 @@ final class IOSCameraEngine: NSObject, AVCapturePhotoCaptureDelegate, AVCaptureF
 
     private var currentPosition: AVCaptureDevice.Position = .back
     private var isConfigured = false
+    private var isConfiguring = false
 
-    private var onPhotoCaptured: ((String?) -> Void)?
-    private var onVideoCaptured: ((String?) -> Void)?
+    private lazy var previewController = IOSCameraPreviewViewController(session: session)
+
+    private var onPhotoCaptured: ((Result<String, IOSCameraEngineError>) -> Void)?
+    private var onVideoCaptured: ((Result<String, IOSCameraEngineError>) -> Void)?
+
+    func makePreviewController() -> UIViewController {
+        return previewController
+    }
 
     func configureSessionIfNeeded() {
-        sessionQueue.sync {
-            guard !isConfigured else { return }
+        sessionQueue.async {
+            guard !self.isConfigured, !self.isConfiguring else { return }
+            self.isConfiguring = true
 
-            session.beginConfiguration()
+            self.session.beginConfiguration()
             defer {
-                session.commitConfiguration()
+                self.session.commitConfiguration()
+                self.isConfiguring = false
             }
 
-            session.sessionPreset = .high
+            self.session.sessionPreset = .high
 
             do {
-                try addInputs(position: currentPosition)
+                try self.addInputs(position: self.currentPosition)
 
-                if session.canAddOutput(photoOutput) {
-                    session.addOutput(photoOutput)
+                if self.session.canAddOutput(self.photoOutput) {
+                    self.session.addOutput(self.photoOutput)
                 }
 
-                if session.canAddOutput(movieOutput) {
-                    session.addOutput(movieOutput)
+                if self.session.canAddOutput(self.movieOutput) {
+                    self.session.addOutput(self.movieOutput)
                 }
 
-                isConfigured = true
+                self.isConfigured = true
             } catch {
+                self.isConfigured = false
                 print("Errore configurazione camera: \(error)")
             }
         }
@@ -56,7 +116,7 @@ final class IOSCameraEngine: NSObject, AVCapturePhotoCaptureDelegate, AVCaptureF
         session.inputs.forEach { session.removeInput($0) }
 
         guard let videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: position) else {
-            throw NSError(domain: "camera", code: 1, userInfo: [NSLocalizedDescriptionKey: "Video device non disponibile"])
+            throw IOSCameraEngineError.cameraUnavailable
         }
 
         let videoInput = try AVCaptureDeviceInput(device: videoDevice)
@@ -72,31 +132,17 @@ final class IOSCameraEngine: NSObject, AVCapturePhotoCaptureDelegate, AVCaptureF
         }
     }
 
-    func makePreviewController() -> UIViewController {
-        configureSessionIfNeeded()
-
-        let vc = UIViewController()
-        vc.view.backgroundColor = .black
-
-        let previewLayer = AVCaptureVideoPreviewLayer(session: session)
-        previewLayer.videoGravity = .resizeAspectFill
-        previewLayer.frame = vc.view.bounds
-        vc.view.layer.addSublayer(previewLayer)
-
-        DispatchQueue.main.async {
-            previewLayer.frame = vc.view.bounds
-        }
-
-        startSessionIfNeeded()
-
-        return vc
-    }
-
     func startSessionIfNeeded() {
         sessionQueue.async {
-            guard self.isConfigured else { return }
-            guard !self.session.isRunning else { return }
-            self.session.startRunning()
+            if !self.isConfigured && !self.isConfiguring {
+                self.configureSessionIfNeeded()
+            }
+
+            self.sessionQueue.async {
+                guard self.isConfigured else { return }
+                guard !self.session.isRunning else { return }
+                self.session.startRunning()
+            }
         }
     }
 
@@ -107,30 +153,41 @@ final class IOSCameraEngine: NSObject, AVCapturePhotoCaptureDelegate, AVCaptureF
         }
     }
 
-    func switchCamera() throws {
-        sessionQueue.sync {
-            session.beginConfiguration()
-            defer {
-                session.commitConfiguration()
-            }
+    func switchCamera() {
+        sessionQueue.async {
+            self.session.beginConfiguration()
+            defer { self.session.commitConfiguration() }
 
-            currentPosition = (currentPosition == .back) ? .front : .back
+            self.currentPosition = (self.currentPosition == .back) ? .front : .back
 
             do {
-                try addInputs(position: currentPosition)
+                try self.addInputs(position: self.currentPosition)
             } catch {
                 print("Errore switch camera: \(error)")
             }
         }
     }
 
-    func capturePhoto(onComplete: @escaping (String?) -> Void) {
-        self.onPhotoCaptured = onComplete
+    func capturePhoto(onComplete: @escaping (Result<String, IOSCameraEngineError>) -> Void) {
+        guard isConfigured else {
+            onComplete(.failure(.notConfigured))
+            return
+        }
+
+        onPhotoCaptured = onComplete
         let settings = AVCapturePhotoSettings()
         photoOutput.capturePhoto(with: settings, delegate: self)
     }
 
-    func startRecording() {
+    func startRecording() -> IOSCameraEngineError? {
+        guard isConfigured else {
+            return .notConfigured
+        }
+
+        if movieOutput.isRecording {
+            return .recordingAlreadyStarted
+        }
+
         sessionQueue.async {
             guard !self.movieOutput.isRecording else { return }
 
@@ -139,26 +196,44 @@ final class IOSCameraEngine: NSObject, AVCapturePhotoCaptureDelegate, AVCaptureF
 
             self.movieOutput.startRecording(to: url, recordingDelegate: self)
         }
+
+        return nil
     }
 
-    func stopRecording(onComplete: @escaping (String?) -> Void) {
-        self.onVideoCaptured = onComplete
+    func stopRecording(onComplete: @escaping (Result<String, IOSCameraEngineError>) -> Void) {
+        guard isConfigured else {
+            onComplete(.failure(.notConfigured))
+            return
+        }
+
+        onVideoCaptured = onComplete
+
         sessionQueue.async {
             guard self.movieOutput.isRecording else {
                 DispatchQueue.main.async {
-                    onComplete(nil)
+                    onComplete(.failure(.recordingNotStarted))
                 }
                 return
             }
+
             self.movieOutput.stopRecording()
         }
     }
 
-    func photoOutput(_ output: AVCapturePhotoOutput,
-                     didFinishProcessingPhoto photo: AVCapturePhoto,
-                     error: Error?) {
-        guard error == nil, let data = photo.fileDataRepresentation() else {
-            onPhotoCaptured?(nil)
+    func photoOutput(
+        _ output: AVCapturePhotoOutput,
+        didFinishProcessingPhoto photo: AVCapturePhoto,
+        error: Error?
+    ) {
+        guard error == nil else {
+            onPhotoCaptured?(.failure(.captureFailed))
+            onPhotoCaptured = nil
+            return
+        }
+
+        guard let data = photo.fileDataRepresentation() else {
+            onPhotoCaptured?(.failure(.captureFailed))
+            onPhotoCaptured = nil
             return
         }
 
@@ -167,20 +242,27 @@ final class IOSCameraEngine: NSObject, AVCapturePhotoCaptureDelegate, AVCaptureF
 
         do {
             try data.write(to: url)
-            onPhotoCaptured?(url.path)
+            onPhotoCaptured?(.success(url.path))
         } catch {
-            onPhotoCaptured?(nil)
+            onPhotoCaptured?(.failure(.unknown(error.localizedDescription)))
         }
+
+        onPhotoCaptured = nil
     }
 
-    func fileOutput(_ output: AVCaptureFileOutput,
-                    didFinishRecordingTo outputFileURL: URL,
-                    from connections: [AVCaptureConnection],
-                    error: Error?) {
+    func fileOutput(
+        _ output: AVCaptureFileOutput,
+        didFinishRecordingTo outputFileURL: URL,
+        from connections: [AVCaptureConnection],
+        error: Error?
+    ) {
         guard error == nil else {
-            onVideoCaptured?(nil)
+            onVideoCaptured?(.failure(.captureFailed))
+            onVideoCaptured = nil
             return
         }
-        onVideoCaptured?(outputFileURL.path)
+
+        onVideoCaptured?(.success(outputFileURL.path))
+        onVideoCaptured = nil
     }
 }

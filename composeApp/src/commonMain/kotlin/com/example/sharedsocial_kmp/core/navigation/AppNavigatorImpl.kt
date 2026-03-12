@@ -1,7 +1,9 @@
 package com.example.sharedsocial_kmp.core.navigation
 
-import com.example.sharedsocial_kmp.features.feed.presentation.FeedScreen
 import com.example.sharedsocial_kmp.features.auth.presentation.LoginScreen
+import com.example.sharedsocial_kmp.features.camera.domain.model.MediaAsset
+import com.example.sharedsocial_kmp.features.createpost.presentation.CreatePostScreen
+import com.example.sharedsocial_kmp.features.home.presentation.HomePagerScreen
 import com.example.sharedsocial_kmp.features.register.presentation.RegisterScreen
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -17,7 +19,7 @@ class AppNavigatorImpl : AppNavigator {
     override val navigationEvents = _events.receiveAsFlow()
 
     override fun navigateToHome() {
-        _events.trySend(NavigationAction.ReplaceAll(FeedScreen()))
+        _events.trySend(NavigationAction.ReplaceAll(HomePagerScreen()))
     }
 
     override fun navigateToLogin() {
@@ -39,5 +41,9 @@ class AppNavigatorImpl : AppNavigator {
     override fun navigateToComments(postId: Long) {
         // Implementazione futura della navigazione ai commenti
 
+    }
+
+    override fun navigateToCreatePost(value: MediaAsset) {
+      _events.trySend(NavigationAction.Push(CreatePostScreen(value)))
     }
 }

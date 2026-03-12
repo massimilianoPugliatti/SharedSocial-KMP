@@ -6,12 +6,12 @@ sealed interface MediaAsset {
 
     data class Photo(
         override val localPath: String,
-        override val mimeType: String = "image/jpeg"
+        override val mimeType: String = "image/jpeg",
     ) : MediaAsset
 
     data class Video(
         override val localPath: String,
         override val mimeType: String = "video/mp4",
-        val durationMillis: Long? = null
+        val durationMillis: Long? = null,
     ) : MediaAsset
 }

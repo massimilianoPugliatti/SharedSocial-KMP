@@ -4,8 +4,9 @@ import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import com.example.sharedsocial_kmp.core.dispatchers.AppDispatchers
 import com.example.sharedsocial_kmp.core.navigation.AppNavigator
-import com.example.sharedsocial_kmp.core.service.CameraPermissionService
-import com.example.sharedsocial_kmp.core.service.CameraService
+import com.example.sharedsocial_kmp.core.platform.CameraPermissionRequester
+import com.example.sharedsocial_kmp.core.platform.CameraPermissionService
+import com.example.sharedsocial_kmp.core.platform.CameraService
 import com.example.sharedsocial_kmp.features.camera.domain.model.CameraError
 import com.example.sharedsocial_kmp.features.camera.domain.model.CameraMode
 import com.example.sharedsocial_kmp.features.camera.domain.model.CameraResult
@@ -25,22 +26,24 @@ class CameraViewModel(
     private val navigator: AppNavigator,
     private val cameraService: CameraService,
     private val permissionService: CameraPermissionService,
+    private val permissionRequester: CameraPermissionRequester,
     private val capturePhotoUseCase: CapturePhotoUseCase,
     private val startVideoRecordingUseCase: StartVideoRecordingUseCase,
     private val stopVideoRecordingUseCase: StopVideoRecordingUseCase,
     private val switchCameraUseCase: SwitchCameraUseCase,
     private val pickMediaUseCase: PickMediaUseCase,
-    private val dispatchers: AppDispatchers
+    private val dispatchers: AppDispatchers,
 ) : ScreenModel {
 
     private val _state = MutableStateFlow(CameraState())
     val state = _state.asStateFlow()
 
     private var recordingTimerJob: Job? = null
+    private var isCameraStarted = false
 
     fun onEvent(event: CameraEvent) {
         when (event) {
-            CameraEvent.OnStart -> startCamera()
+            CameraEvent.OnStart -> checkPermissionsAndStart()
             CameraEvent.OnStop -> stopCamera()
             CameraEvent.OnBackClick -> navigator.goBack()
             CameraEvent.OnTakePhotoClick -> takePhoto()
@@ -48,37 +51,71 @@ class CameraViewModel(
             CameraEvent.OnStopRecordingClick -> stopRecording()
             CameraEvent.OnSwitchCameraClick -> switchCamera()
             CameraEvent.OnPickMediaClick -> pickMedia()
+
             is CameraEvent.OnModeChanged -> {
-                _state.update { it.copy(selectedMode = event.mode) }
+                _state.update { current ->
+                    if (current.selectedMode == event.mode) current
+                    else current.copy(selectedMode = event.mode)
+                }
             }
+
             CameraEvent.OnMessageConsumed -> {
                 _state.update { it.copy(uiMessage = null) }
             }
+
             CameraEvent.OnCapturedMediaConsumed -> {
                 _state.update { it.copy(capturedMedia = null) }
             }
         }
     }
 
-    private fun startCamera() {
+    private fun checkPermissionsAndStart() {
+        if (isCameraStarted) return
+
         screenModelScope.launch(dispatchers.main) {
-            val cameraPermission = permissionService.ensureCameraPermission()
-            if (cameraPermission is CameraResult.Failure) {
-                publishError(cameraPermission.error)
+            val needsMicrophone = _state.value.selectedMode == CameraMode.VIDEO
+
+            val cameraGranted =
+                permissionService.ensureCameraPermission() is CameraResult.Success
+
+            val microphoneGranted =
+                if (needsMicrophone) {
+                    permissionService.ensureMicrophonePermission() is CameraResult.Success
+                } else {
+                    true
+                }
+
+            if (cameraGranted && microphoneGranted) {
+                startCameraInternal()
                 return@launch
             }
 
-            if (_state.value.selectedMode == CameraMode.VIDEO) {
-                val micPermission = permissionService.ensureMicrophonePermission()
-                if (micPermission is CameraResult.Failure) {
-                    publishError(micPermission.error)
-                    return@launch
-                }
-            }
+            val requestResult = permissionRequester.requestPermissions(
+                needsMicrophone = needsMicrophone
+            )
 
+            when {
+                !requestResult.cameraGranted -> publishError(CameraError.PermissionDenied)
+                needsMicrophone && !requestResult.microphoneGranted ->
+                    publishError(CameraError.MicrophonePermissionDenied)
+
+                else -> startCameraInternal()
+            }
+        }
+    }
+
+    private fun startCameraInternal() {
+        if (isCameraStarted) return
+
+        screenModelScope.launch(dispatchers.main) {
             when (val result = cameraService.start()) {
-                is CameraResult.Success -> Unit
-                is CameraResult.Failure -> publishError(result.error)
+                is CameraResult.Success -> {
+                    isCameraStarted = true
+                }
+
+                is CameraResult.Failure -> {
+                    publishError(result.error)
+                }
             }
         }
     }
@@ -86,7 +123,17 @@ class CameraViewModel(
     private fun stopCamera() {
         screenModelScope.launch(dispatchers.main) {
             recordingTimerJob?.cancel()
-            cameraService.stop()
+            recordingTimerJob = null
+            _state.update {
+                it.copy(
+                    isRecording = false,
+                    elapsedRecordingSeconds = 0L
+                )
+            }
+            if (isCameraStarted) {
+                cameraService.stop()
+                isCameraStarted = false
+            }
         }
     }
 
@@ -95,14 +142,10 @@ class CameraViewModel(
             _state.update { it.copy(isLoading = true) }
             when (val result = capturePhotoUseCase()) {
                 is CameraResult.Success -> {
-                    println("result: ${result.value}")
-                    _state.update {
-                        it.copy(
-                            isLoading = false,
-                            capturedMedia = result.value
-                        )
-                    }
+                    _state.update { it.copy(isLoading = false) }
+                    navigator.navigateToCreatePost(result.value)
                 }
+
                 is CameraResult.Failure -> {
                     _state.update { it.copy(isLoading = false) }
                     publishError(result.error)
@@ -123,6 +166,7 @@ class CameraViewModel(
                     }
                     startTimer()
                 }
+
                 is CameraResult.Failure -> publishError(result.error)
             }
         }
@@ -133,15 +177,17 @@ class CameraViewModel(
             when (val result = stopVideoRecordingUseCase()) {
                 is CameraResult.Success -> {
                     recordingTimerJob?.cancel()
-                    println("result: ${result.value}")
+                    recordingTimerJob = null
+
                     _state.update {
                         it.copy(
                             isRecording = false,
-                            elapsedRecordingSeconds = 0L,
-                            capturedMedia = result.value
+                            elapsedRecordingSeconds = 0L
                         )
                     }
+                    navigator.navigateToCreatePost(result.value)
                 }
+
                 is CameraResult.Failure -> publishError(result.error)
             }
         }
@@ -159,10 +205,7 @@ class CameraViewModel(
     private fun pickMedia() {
         screenModelScope.launch(dispatchers.main) {
             when (val result = pickMediaUseCase()) {
-                is CameraResult.Success -> {
-                    println("result: ${result.value}")
-                    _state.update { it.copy(capturedMedia = result.value) }
-                }
+                is CameraResult.Success -> navigator.navigateToCreatePost(result.value)
                 is CameraResult.Failure -> publishError(result.error)
             }
         }
@@ -181,24 +224,20 @@ class CameraViewModel(
     }
 
     private fun publishError(error: CameraError) {
-        val message = when (error) {
-            CameraError.PermissionDenied -> CameraUiMessage.PermissionDenied
-            CameraError.CameraUnavailable -> CameraUiMessage.CameraUnavailable
-            CameraError.CaptureFailed -> CameraUiMessage.CaptureFailed
-            CameraError.RecordingAlreadyStarted -> CameraUiMessage.RecordingAlreadyStarted
-            CameraError.RecordingNotStarted -> CameraUiMessage.RecordingNotStarted
-            CameraError.MicrophonePermissionDenied -> CameraUiMessage.Generic("Permesso microfono negato")
-            CameraError.PickerCancelled -> CameraUiMessage.Generic("Selezione annullata")
-            is CameraError.Unknown -> CameraUiMessage.Generic(error.message ?: "Errore sconosciuto")
+        _state.update {
+            it.copy(uiMessage = CameraErrorUiResolver.resolve(error))
         }
-        _state.update { it.copy(uiMessage = message) }
     }
 
     override fun onDispose() {
         recordingTimerJob?.cancel()
+        recordingTimerJob = null
+
         screenModelScope.launch(dispatchers.main) {
             cameraService.stop()
+            isCameraStarted = false
         }
+
         super.onDispose()
     }
 }

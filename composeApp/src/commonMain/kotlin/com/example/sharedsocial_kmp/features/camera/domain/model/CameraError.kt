@@ -10,8 +10,3 @@ sealed interface CameraError {
     data object PickerCancelled : CameraError
     data class Unknown(val message: String? = null) : CameraError
 }
-
-sealed interface CameraResult<out T> {
-    data class Success<T>(val value: T) : CameraResult<T>
-    data class Failure(val error: CameraError) : CameraResult<Nothing>
-}
