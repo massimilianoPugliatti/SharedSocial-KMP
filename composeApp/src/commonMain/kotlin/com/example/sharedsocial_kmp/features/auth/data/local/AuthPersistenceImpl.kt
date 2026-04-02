@@ -65,6 +65,6 @@ class AuthPersistenceImpl(
      * Determina se l'utente è autenticato verificando la presenza di un token di sessione.
      */
     override suspend fun isAuthenticated(): Boolean {
-        return false
+        return getToken()!=null
     }
 }
