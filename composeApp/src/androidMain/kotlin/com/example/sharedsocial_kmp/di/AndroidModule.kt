@@ -10,9 +10,11 @@ import com.example.sharedsocial_kmp.features.auth.data.local.SecureStorage
 import com.example.sharedsocial_kmp.platform.AndroidAnalyticsService
 import com.example.sharedsocial_kmp.core.platform.AnalyticsService
 import com.example.sharedsocial_kmp.core.platform.CameraPermissionRequester
+import com.example.sharedsocial_kmp.core.platform.MediaAssetReader
 import com.example.sharedsocial_kmp.core.platform.MediaPickerService
 import com.example.sharedsocial_kmp.core.platform.MediaPreviewRenderer
 import com.example.sharedsocial_kmp.platform.AndroidCameraPermissionRequester
+import com.example.sharedsocial_kmp.platform.AndroidMediaAssetReader
 import com.example.sharedsocial_kmp.platform.AndroidMediaPickerService
 import com.example.sharedsocial_kmp.platform.AndroidMediaPreviewRenderer
 import org.koin.dsl.bind
@@ -57,6 +59,10 @@ val androidModule = module {
     }
 
     single<MediaPickerService> { get<AndroidMediaPickerService>() }
+
+    single<MediaAssetReader> {
+        AndroidMediaAssetReader(context = get())
+    }
 
     single<MediaPreviewRenderer> {
         AndroidMediaPreviewRenderer(context = get())

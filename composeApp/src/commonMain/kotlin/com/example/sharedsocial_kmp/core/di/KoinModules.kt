@@ -23,6 +23,11 @@ import com.example.sharedsocial_kmp.features.auth.presentation.LoginViewModel
 import com.example.sharedsocial_kmp.features.camera.domain.model.MediaAsset
 import com.example.sharedsocial_kmp.features.camera.presentation.CameraViewModel
 import com.example.sharedsocial_kmp.features.createpost.presentation.CreatePostViewModel
+import com.example.sharedsocial_kmp.features.createpost.data.repository.KtorPostRepository
+import com.example.sharedsocial_kmp.features.createpost.data.repository.PostRepositoryDecorator
+import com.example.sharedsocial_kmp.features.createpost.domain.repository.PostRepository
+import com.example.sharedsocial_kmp.features.createpost.domain.usecase.CreatePostUseCase
+import com.example.sharedsocial_kmp.features.createpost.domain.usecase.CreatePostUseCaseImpl
 import com.example.sharedsocial_kmp.features.feed.data.repository.FeedRepositoryDecorator
 import com.example.sharedsocial_kmp.features.feed.data.repository.KtorFeedRepository
 import com.example.sharedsocial_kmp.features.feed.domain.repository.FeedRepository
@@ -95,6 +100,19 @@ val commonModule = module {
             analytics = get()
         )
     }
+    single<PostRepository>(named("base_create_post_repo")) {
+        KtorPostRepository(
+            httpClient = get(),
+            mediaAssetReader = get(),
+            dispatchers = get(),
+        )
+    }
+    single<PostRepository> {
+        PostRepositoryDecorator(
+            delegate = get(named("base_create_post_repo")),
+            analytics = get(),
+        )
+    }
 
     // UseCases
     factory<LoginUseCase> { LoginUseCaseImpl(get(), get()) }
@@ -103,6 +121,7 @@ val commonModule = module {
     factory<GetPostsUseCase> { GetPostsUseCaseImpl(get(), get()) }
     factory<NewPostUseCase> { NewPostuseCaseImpl(get(), get()) }
     factory<ToggleLikeUseCase> { ToggleLikeUseCaseImpl(get(), get()) }
+    factory<CreatePostUseCase> { CreatePostUseCaseImpl(get(), get()) }
 
 
     // ViewModels
@@ -111,5 +130,12 @@ val commonModule = module {
     factory { RegisterViewModel(get(), get(), get()) }
     factory { FeedViewModel(get(), get(), get(), get(), get()) }
     factory { CameraViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(),get()) }
-    factory { (media: MediaAsset) -> CreatePostViewModel(navigator = get(), initialMedia = media) }
+    factory { (media: MediaAsset) ->
+        CreatePostViewModel(
+            navigator = get(),
+            createPostUseCase = get(),
+            dispatchers = get(),
+            initialMedia = media,
+        )
+    }
 }
