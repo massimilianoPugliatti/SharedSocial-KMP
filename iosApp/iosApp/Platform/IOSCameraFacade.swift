@@ -7,6 +7,7 @@
 
 import AVFoundation
 import ComposeApp
+import Foundation
 import UIKit
 
 final class IOSCameraFacade: NSObject, CameraService, CameraPermissionService {
@@ -76,15 +77,34 @@ final class IOSCameraFacade: NSObject, CameraService, CameraPermissionService {
             engine.stopRecording { result in
                 switch result {
                 case .success(let path):
-                    let media = MediaAssetVideo(
-                        localPath: path,
-                        mimeType: "video/mp4",
-                        durationMillis: nil
-                    )
+                    Task {
+                        do {
+                            let sourceUrl = URL(fileURLWithPath: path)
+                            let normalizedUrl = try await IOSVideoNormalizer.shared.normalizeToMp4(sourceUrl: sourceUrl)
 
-                    continuation.resume(
-                        returning: CameraResultSuccess(value: media)
-                    )
+                            if sourceUrl.path != normalizedUrl.path {
+                                try? FileManager.default.removeItem(at: sourceUrl)
+                            }
+
+                            let media = MediaAssetVideo(
+                                localPath: normalizedUrl.absoluteString,
+                                mimeType: "video/mp4",
+                                durationMillis: IOSVideoNormalizer.shared.durationMillis(for: normalizedUrl).map { NSNumber(value: $0) as? KotlinLong } ?? nil
+                            )
+
+                            continuation.resume(
+                                returning: CameraResultSuccess(value: media)
+                            )
+                        } catch {
+                            continuation.resume(
+                                returning: CameraResultFailure(
+                                    error: CameraErrorUnknown(
+                                        message: error.localizedDescription
+                                    )
+                                )
+                            )
+                        }
+                    }
 
                 case .failure(let error):
                     continuation.resume(

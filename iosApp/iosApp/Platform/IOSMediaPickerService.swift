@@ -124,7 +124,7 @@ final class IOSMediaPickerService: NSObject, MediaPickerService, PHPickerViewCon
             guard
                 let copiedUrl = self.copyPickedFileToTemp(
                     sourceUrl: url,
-                    preferredExtension: url.pathExtension.isEmpty ? "mp4" : url.pathExtension
+                    preferredExtension: url.pathExtension.isEmpty ? "mov" : url.pathExtension
                 )
             else {
                 continuation.resume(
@@ -133,15 +133,31 @@ final class IOSMediaPickerService: NSObject, MediaPickerService, PHPickerViewCon
                 return
             }
 
-            let media = MediaAssetVideo(
-                localPath: copiedUrl.absoluteString,
-                mimeType: "video/mp4",
-                durationMillis: nil
-            )
+            Task {
+                do {
+                    let normalizedUrl = try await IOSVideoNormalizer.shared.normalizeToMp4(sourceUrl: copiedUrl)
 
-            continuation.resume(
-                returning: CameraResultSuccess(value: media)
-            )
+                    if copiedUrl.path != normalizedUrl.path {
+                        try? FileManager.default.removeItem(at: copiedUrl)
+                    }
+
+                    let media = MediaAssetVideo(
+                        localPath: normalizedUrl.absoluteString,
+                        mimeType: "video/mp4",
+                        durationMillis: nil
+                    )
+
+                    continuation.resume(
+                        returning: CameraResultSuccess(value: media)
+                    )
+                } catch {
+                    continuation.resume(
+                        returning: CameraResultFailure(
+                            error: CameraErrorUnknown(message: error.localizedDescription)
+                        )
+                    )
+                }
+            }
         }
     }
 

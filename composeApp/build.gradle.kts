@@ -10,8 +10,6 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.google.services)
     alias(libs.plugins.firebase.crashlytics)
-
-
 }
 
 kotlin {
@@ -74,6 +72,7 @@ kotlin {
             // Video capture API
             implementation(libs.androidx.camera.video)
 
+            implementation(libs.coil.android)
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
@@ -104,9 +103,11 @@ kotlin {
             api("io.github.mirzemehdi:kmpnotifier:1.6.1")
             implementation(libs.material.icons.extended)
         }
+
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
         }
+
         commonTest.dependencies {
             implementation(kotlin("test"))
             implementation(libs.kotlin.test)
@@ -118,6 +119,7 @@ kotlin {
             implementation(libs.ktor.serialization.kotlinx.json)
             implementation(libs.slf4j.nop)
         }
+
         androidUnitTest.dependencies {
             implementation(kotlin("test"))
             implementation(libs.robolectric)
@@ -137,36 +139,40 @@ android {
         versionCode = 1
         versionName = "1.0"
     }
+
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+
     buildTypes {
         getByName("release") {
             isMinifyEnabled = false
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
     testOptions {
         unitTests {
             isIncludeAndroidResources = true
         }
     }
-
 }
+
 dependencies {
     debugImplementation(libs.compose.uiTooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     add("androidMainImplementation", platform(libs.firebase.android.bom))
 }
+
 tasks.withType<Test> {
     testLogging {
         events("passed", "skipped", "failed")
         showStandardStreams = true
     }
 }
-

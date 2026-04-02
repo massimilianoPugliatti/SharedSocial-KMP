@@ -191,7 +191,7 @@ final class IOSCameraEngine: NSObject, AVCapturePhotoCaptureDelegate, AVCaptureF
         sessionQueue.async {
             guard !self.movieOutput.isRecording else { return }
 
-            let path = NSTemporaryDirectory() + "\(Date().timeIntervalSince1970).mp4"
+            let path = NSTemporaryDirectory() + "\(Date().timeIntervalSince1970).mov"
             let url = URL(fileURLWithPath: path)
 
             self.movieOutput.startRecording(to: url, recordingDelegate: self)
