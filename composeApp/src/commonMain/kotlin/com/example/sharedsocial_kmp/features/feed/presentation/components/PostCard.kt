@@ -14,29 +14,45 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Replay
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FilledTonalIconToggleButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.example.sharedsocial_kmp.core.platform.MediaPreviewRenderer
+import com.example.sharedsocial_kmp.core.platform.MediaRenderScaleMode
+import com.example.sharedsocial_kmp.core.platform.VideoPlaybackUiState
 import com.example.sharedsocial_kmp.features.camera.domain.model.MediaAsset
 import com.example.sharedsocial_kmp.features.feed.domain.model.Post
 
 @Composable
 fun PostCard(
     post: Post,
-    renderMedia: @Composable (MediaAsset, Modifier) -> Unit,
+    isActive: Boolean,
+    mediaPreviewRenderer: MediaPreviewRenderer,
     onLikeClick: () -> Unit,
     onCommentClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    var replayToken by remember(post.id) { mutableIntStateOf(0) }
+    var videoUiState by remember(post.id) { mutableStateOf(VideoPlaybackUiState()) }
+
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -44,9 +60,15 @@ fun PostCard(
     ) {
         when {
             post.media != null -> {
-                renderMedia(
-                    post.media,
-                    Modifier.fillMaxSize()
+                mediaPreviewRenderer.Render(
+                    media = post.media,
+                    modifier = Modifier.fillMaxSize(),
+                    isActive = isActive,
+                    replayToken = replayToken,
+                    scaleMode = MediaRenderScaleMode.Fill,
+                    onVideoUiStateChanged = { state ->
+                        videoUiState = state
+                    }
                 )
             }
 
@@ -79,6 +101,34 @@ fun PostCard(
                         text = "Post non disponibile",
                         color = Color.White,
                         style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+            }
+        }
+
+        if (post.media is MediaAsset.Video && videoUiState.isLoading && isActive) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = Color.White)
+            }
+        }
+
+        if (post.media is MediaAsset.Video && videoUiState.canReplay && isActive) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                FilledIconButton(
+                    onClick = {
+                        videoUiState = VideoPlaybackUiState(isLoading = true, canReplay = false)
+                        replayToken++
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Replay,
+                        contentDescription = "Replay"
                     )
                 }
             }
@@ -175,7 +225,7 @@ private fun PostInteractionRow(
             onCheckedChange = { onLikeClick() },
             modifier = Modifier.size(42.dp)
         ) {
-            androidx.compose.material3.Icon(
+            Icon(
                 imageVector = if (liked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                 contentDescription = "Like",
                 tint = if (liked) Color.Red else Color.White

@@ -17,12 +17,7 @@ class FeedScreen : Screen {
 
         FeedContent(
             state = state,
-            previewMedia = { media, modifier ->
-                mediaPreviewRenderer.Render(
-                    media = media,
-                    modifier = modifier
-                )
-            },
+            mediaPreviewRenderer = mediaPreviewRenderer,
             onEvent = { event -> viewModel.onEvent(event) }
         )
     }

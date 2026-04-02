@@ -11,7 +11,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.example.sharedsocial_kmp.features.camera.domain.model.MediaAsset
+import com.example.sharedsocial_kmp.core.platform.MediaPreviewRenderer
 import com.example.sharedsocial_kmp.features.feed.domain.model.Post
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -20,7 +20,7 @@ fun PostListSection(
     posts: List<Post>,
     isLoading: Boolean,
     isRefreshing: Boolean,
-    renderMedia: @Composable (MediaAsset, Modifier) -> Unit,
+    mediaPreviewRenderer: MediaPreviewRenderer,
     onRefresh: () -> Unit,
     onLikeClick: (Long) -> Unit,
     onCommentClick: (Long) -> Unit,
@@ -58,12 +58,15 @@ fun PostListSection(
 
                 VerticalPager(
                     state = pagerState,
+                    beyondViewportPageCount = 1,
                     modifier = Modifier.fillMaxSize()
                 ) { page ->
                     val post = posts[page]
+
                     PostCard(
                         post = post,
-                        renderMedia = renderMedia,
+                        isActive = page == pagerState.currentPage,
+                        mediaPreviewRenderer = mediaPreviewRenderer,
                         onLikeClick = { onLikeClick(post.id) },
                         onCommentClick = { onCommentClick(post.id) },
                         modifier = Modifier.fillMaxSize()

@@ -73,6 +73,8 @@ kotlin {
             implementation(libs.androidx.camera.video)
 
             implementation(libs.coil.android)
+            implementation(libs.androidx.media3.exoplayer)
+            implementation(libs.androidx.media3.ui)
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)

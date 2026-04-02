@@ -16,14 +16,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import com.example.sharedsocial_kmp.features.camera.domain.model.MediaAsset
+import com.example.sharedsocial_kmp.core.platform.MediaPreviewRenderer
 import com.example.sharedsocial_kmp.features.feed.presentation.components.PostListSection
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FeedContent(
     state: FeedState,
-    previewMedia: @Composable (MediaAsset, Modifier) -> Unit,
+    mediaPreviewRenderer: MediaPreviewRenderer,
     onEvent: (FeedEvent) -> Unit,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
@@ -41,7 +41,7 @@ fun FeedContent(
             CenterAlignedTopAppBar(
                 title = { Text("Feed", style = MaterialTheme.typography.titleLarge) },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f),
                     scrolledContainerColor = Color.Unspecified,
                     navigationIconContentColor = Color.Unspecified,
                     titleContentColor = Color.Unspecified,
@@ -54,7 +54,7 @@ fun FeedContent(
             posts = state.posts,
             isLoading = state.isLoading,
             isRefreshing = state.isRefreshing,
-            renderMedia = previewMedia,
+            mediaPreviewRenderer = mediaPreviewRenderer,
             onRefresh = { onEvent(FeedEvent.OnRefreshTriggered) },
             onLikeClick = { id -> onEvent(FeedEvent.OnPostLikeCliked(id)) },
             onCommentClick = { id -> onEvent(FeedEvent.OnPostCommentCliked(id)) },
