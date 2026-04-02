@@ -4,6 +4,7 @@ import com.example.sharedsocial_kmp.core.di.commonModule
 import com.example.sharedsocial_kmp.core.network.networkModule
 import com.example.sharedsocial_kmp.features.auth.data.local.SecureStorage
 import com.example.sharedsocial_kmp.core.platform.AnalyticsService
+import com.example.sharedsocial_kmp.core.platform.MediaAssetReader
 import com.example.sharedsocial_kmp.core.platform.CameraPermissionRequester
 import com.example.sharedsocial_kmp.core.platform.CameraPermissionService
 import com.example.sharedsocial_kmp.core.platform.CameraPreviewRenderer
@@ -11,6 +12,7 @@ import com.example.sharedsocial_kmp.core.platform.CameraService
 import com.example.sharedsocial_kmp.core.platform.MediaPickerService
 import com.example.sharedsocial_kmp.core.platform.MediaPreviewRenderer
 import com.example.sharedsocial_kmp.platform.IOSCameraPermissionRequester
+import com.example.sharedsocial_kmp.platform.IOSMediaAssetReader
 import com.example.sharedsocial_kmp.platform.IOSMediaPreviewRenderer
 import org.koin.core.context.startKoin
 import org.koin.dsl.module
@@ -31,6 +33,7 @@ fun initKoin(
                 single<SecureStorage> { secureStorage }
                 single<AnalyticsService> { analyticsService }
                 single<MediaPreviewRenderer> { IOSMediaPreviewRenderer() }
+                single<MediaAssetReader> { IOSMediaAssetReader() }
                 single<CameraPermissionRequester>{
                     IOSCameraPermissionRequester(
                         cameraPermissionService

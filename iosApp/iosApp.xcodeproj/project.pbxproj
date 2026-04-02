@@ -22,6 +22,7 @@
 		32DF1AF22F54971600573404 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 32DF1AE62F54971600573404 /* Assets.xcassets */; };
 		32DF1AF52F54987700573404 /* KoinDependencies.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32DF1AF42F54987700573404 /* KoinDependencies.swift */; };
 		32DF1AF82F54AFBC00573404 /* IosAnalyticsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32DF1AF72F54AFBC00573404 /* IosAnalyticsService.swift */; };
+		32DFBAA32F7EADA900E3D549 /* IOSVideoNormalizationError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32DFBAA22F7EADA900E3D549 /* IOSVideoNormalizationError.swift */; };
 		32E223712F5ED76300EDCC45 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 32E223702F5ED76300EDCC45 /* GoogleService-Info.plist */; };
 /* End PBXBuildFile section */
 
@@ -39,6 +40,7 @@
 		32DF1AF42F54987700573404 /* KoinDependencies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KoinDependencies.swift; sourceTree = "<group>"; };
 		32DF1AF72F54AFBC00573404 /* IosAnalyticsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IosAnalyticsService.swift; sourceTree = "<group>"; };
 		32DF1AFB2F54C52E00573404 /* iosApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = iosApp.entitlements; sourceTree = "<group>"; };
+		32DFBAA22F7EADA900E3D549 /* IOSVideoNormalizationError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOSVideoNormalizationError.swift; sourceTree = "<group>"; };
 		32E223702F5ED76300EDCC45 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		C2D7165759FD45FBBD401D18 /* SharedSocialKMP.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SharedSocialKMP.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -107,6 +109,7 @@
 				324AE5022F5F2EC400E94B6E /* IOSCameraEngine.swift */,
 				32DF1AF72F54AFBC00573404 /* IosAnalyticsService.swift */,
 				32DF1AEB2F54971600573404 /* IosSecureStorage.swift */,
+				32DFBAA22F7EADA900E3D549 /* IOSVideoNormalizationError.swift */,
 			);
 			path = Platform;
 			sourceTree = "<group>";
@@ -236,6 +239,7 @@
 				324AE5032F5F2EC400E94B6E /* IOSCameraEngine.swift in Sources */,
 				32C471592F624E0100D29B68 /* IOSCameraEngineError.swift in Sources */,
 				32DF1AED2F54971600573404 /* ContentView.swift in Sources */,
+				32DFBAA32F7EADA900E3D549 /* IOSVideoNormalizationError.swift in Sources */,
 				32DF1AF52F54987700573404 /* KoinDependencies.swift in Sources */,
 				324AE5052F5F2EE600E94B6E /* IOSCameraFacade.swift in Sources */,
 				32DF1AEE2F54971600573404 /* IosSecureStorage.swift in Sources */,

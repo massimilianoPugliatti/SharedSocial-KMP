@@ -1,23 +1,26 @@
 package com.example.sharedsocial_kmp.features.feed.presentation.components
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.foundation.pager.VerticalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import com.example.sharedsocial_kmp.core.platform.MediaPreviewRenderer
 import com.example.sharedsocial_kmp.features.feed.domain.model.Post
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PostListSection(
     posts: List<Post>,
     isLoading: Boolean,
     isRefreshing: Boolean,
+    mediaPreviewRenderer: MediaPreviewRenderer,
     onRefresh: () -> Unit,
     onLikeClick: (Long) -> Unit,
     onCommentClick: (Long) -> Unit,
@@ -28,19 +31,45 @@ fun PostListSection(
         onRefresh = onRefresh,
         modifier = modifier.fillMaxSize()
     ) {
-        if (isLoading && posts.isEmpty()) {
-            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(items = posts, key = { it.id }) { post ->
+        when {
+            isLoading && posts.isEmpty() -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
+
+            posts.isEmpty() -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("Nessun post disponibile")
+                }
+            }
+
+            else -> {
+                val pagerState = rememberPagerState(
+                    initialPage = 0,
+                    pageCount = { posts.size }
+                )
+
+                VerticalPager(
+                    state = pagerState,
+                    beyondViewportPageCount = 1,
+                    modifier = Modifier.fillMaxSize()
+                ) { page ->
+                    val post = posts[page]
+
                     PostCard(
                         post = post,
+                        isActive = page == pagerState.currentPage,
+                        mediaPreviewRenderer = mediaPreviewRenderer,
                         onLikeClick = { onLikeClick(post.id) },
-                        onCommentClick = { onCommentClick(post.id) }
+                        onCommentClick = { onCommentClick(post.id) },
+                        modifier = Modifier.fillMaxSize()
                     )
                 }
             }
