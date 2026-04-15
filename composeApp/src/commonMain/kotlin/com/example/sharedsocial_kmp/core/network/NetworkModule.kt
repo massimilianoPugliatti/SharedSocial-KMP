@@ -67,7 +67,7 @@ val networkModule = module {
             defaultRequest {
                 url("https://socialmaster.ddns.net/")
                 header(HttpHeaders.ContentType, ContentType.Application.Json)
-                header("key", "MasterSviluppoFeb25")
+                header("key", "aztrcinowrhgwer")
             }
         }
     }
